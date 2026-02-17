@@ -36,6 +36,8 @@ export default async function MemberLoginPage({
         </p>
         <p className="mt-2 text-center">
           <Link href="/" className="text-sm text-neutral-400 hover:text-white">← Home</Link>
+          {" · "}
+          <a href="/api/auth/clear-session" className="text-sm text-neutral-400 hover:text-white">Clear session</a>
         </p>
       </div>
     </main>

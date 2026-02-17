@@ -31,10 +31,15 @@ export default function AdminError({ error, reset }: { error: Error & { digest?:
                 Clear session and go to login
               </button>
             </form>
+            <a href="/api/auth/clear-session" className="rounded bg-neutral-700 px-4 py-2 text-sm text-white hover:bg-neutral-600">
+              Force clear all sessions
+            </a>
           </div>
         </div>
         <p className="mt-4">
           <Link href="/admin/login" className="text-neutral-400 hover:text-white text-sm">← Admin login</Link>
+          {" · "}
+          <a href="/api/auth/clear-session" className="text-neutral-400 hover:text-white text-sm">Force clear sessions</a>
         </p>
       </div>
     </main>
