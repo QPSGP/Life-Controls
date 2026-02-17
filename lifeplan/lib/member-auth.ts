@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import crypto from "crypto";
 
-const COOKIE_NAME = "sovereign_member";
+export const MEMBER_COOKIE_NAME = "sovereign_member";
 
 function signMemberId(memberId: string): string {
   if (!process.env.AUTH_SECRET) return "";
@@ -23,7 +23,7 @@ export async function setMemberCookie(memberId: string): Promise<void> {
   const value = signMemberId(memberId);
   if (!value) return;
   const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, value, {
+  cookieStore.set(MEMBER_COOKIE_NAME, value, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -34,12 +34,12 @@ export async function setMemberCookie(memberId: string): Promise<void> {
 
 export async function clearMemberCookie(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.delete(COOKIE_NAME);
+  cookieStore.delete(MEMBER_COOKIE_NAME);
 }
 
 export async function getMemberIdFromCookie(): Promise<string | null> {
   const cookieStore = await cookies();
-  const cookie = cookieStore.get(COOKIE_NAME);
+  const cookie = cookieStore.get(MEMBER_COOKIE_NAME);
   if (!cookie?.value) return null;
   return verifyAndGetMemberId(cookie.value);
 }

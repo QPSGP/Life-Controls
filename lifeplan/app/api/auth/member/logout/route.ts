@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { clearMemberCookie } from "@/lib/member-auth";
+import { MEMBER_COOKIE_NAME } from "@/lib/member-auth";
 
 export async function POST(req: NextRequest) {
-  await clearMemberCookie();
   const url = new URL(req.url);
-  return NextResponse.redirect(new URL("/login", url.origin));
+  const res = NextResponse.redirect(new URL("/login", url.origin));
+  res.cookies.set(MEMBER_COOKIE_NAME, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 0,
+    path: "/",
+  });
+  return res;
 }
