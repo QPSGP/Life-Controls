@@ -1,0 +1,21 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ GRANTDEE.DB | Doc. #             | Recorded | Document Title | Lot:   |
+             | Check _EG03, _EG02 | Check    | ..deed..       | Check  |
+
+ GRANTDEE.DB | Block  | Tract: | Book:  | Pages  | Parcel # | Property Adrs |
+             | Check  | Check  | Check  | Check  | Check    | Check         |
+
+ GRANTDEE.DB | Property Adrs2 |
+             | Check          |
+
+ GRANTEES.DB | Doc. # | Grantee Name | %      |
+             | _EG02  | Check        | Check  |
+
+ GRANTORS.DB | Doc. # | Grantor Name | %      |
+             | _EG03  | Check        | Check  |
+
+
+EndQuery

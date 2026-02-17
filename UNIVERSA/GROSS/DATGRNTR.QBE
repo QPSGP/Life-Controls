@@ -1,0 +1,12 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ GRANTORS.DB | Doc. #      | Grantor Name    |
+             | Check _EG01 | Check ..Chris.. |
+
+ GRANTDEE.DB | Doc. # | Recorded |
+             | _EG01  | Check    |
+
+
+EndQuery

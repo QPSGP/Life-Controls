@@ -1,0 +1,21 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ GRANTDEE.DB | Doc. #             | Recorded | Document Title | Property Adrs |
+             | Check _EG02, _EG01 | Check    | Check          | Check         |
+
+ GRANTDEE.DB | Property Adrs2 |
+             | Check          |
+
+ GRANTEES.DB | Doc. # | Grantee Name | %      |
+             | _EG01  | Check        | Check  |
+
+ GRANTORS.DB | Doc. # | Grantor Name                                    |
+             | _EG02  | Check S & B Commonwealth.. or ..B & S Pacific.. |
+
+ GRANTORS.DB | %      |
+             | Check  |
+
+
+EndQuery

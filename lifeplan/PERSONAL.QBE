@@ -1,0 +1,24 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ CONTACT1.DB | ContactNum  | ContactLastName | ContactFirstName | Title  |
+             | Check _EG01 | Check           | Check            | Check  |
+
+ CONTACT1.DB | Company | Description | Street Address | City   | State  |
+             | Check   | Check       | Check          | Check  | Check  |
+
+ CONTACT1.DB | ZipInformation | MailingJurisdiction | Country | CompanyNumber |
+             | Check          | Check               | Check   | Check         |
+
+ CONTACT1.DB | PersonalNumber | FaxNumber | PagerNumber | CellurNumber |
+             | Check          | Check     | Check       | Check        |
+
+ CONTACT1.DB | E-MailNumber | OtherNumber | Notes  |
+             | Check        | Check       | Check  |
+
+ CONCAT.DB | Contact Number | Catatgories    |
+           | Check _EG01    | Check Personal |
+
+
+EndQuery

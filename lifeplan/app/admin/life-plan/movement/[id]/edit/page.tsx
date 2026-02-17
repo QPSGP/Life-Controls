@@ -1,0 +1,78 @@
+import { prisma } from "@/lib/db";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { MOVEMENT_TYPES } from "@/lib/movement-types";
+
+export const dynamic = "force-dynamic";
+
+export default async function MovementEditPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { id } = await params;
+  const { error } = await searchParams;
+  const movement = await prisma.physicalMovement.findUnique({
+    where: { id },
+    include: { areaOfResponsibility: { select: { id: true, name: true } } },
+  });
+  if (!movement) notFound();
+  const backUrl = "/admin/life-plan/responsibility/" + movement.areaOfResponsibilityId;
+
+  return (
+    <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
+      <div className="max-w-2xl mx-auto">
+        <header className="border-b border-neutral-800 pb-4 mb-6">
+          <Link href={backUrl} className="text-neutral-400 hover:text-white text-sm">← {movement.areaOfResponsibility.name}</Link>
+          <h1 className="text-2xl font-semibold mt-2">Edit physical movement</h1>
+        </header>
+
+        {error && <p className="text-amber-500 text-sm mb-4">Verb is required.</p>}
+
+        <form action={"/api/life-plan/physical-movement/" + id} method="POST" className="rounded bg-neutral-900 p-4 space-y-2">
+          <div>
+            <label className="block text-sm text-neutral-400 mb-1">Type (miniday category)</label>
+            <select name="movementType" defaultValue={movement.movementType ?? ""} className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700">
+              <option value="">—</option>
+              {MOVEMENT_TYPES.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <input type="text" name="verb" placeholder="Verb (required)" required defaultValue={movement.verb ?? ""} className="rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />
+            <input type="text" name="noun" placeholder="Noun" defaultValue={movement.noun ?? ""} className="rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />
+            <input type="text" name="object" placeholder="Object" defaultValue={movement.object ?? ""} className="rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />
+          </div>
+          <input type="text" name="objective" placeholder="Objective" defaultValue={movement.objective ?? ""} className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />
+          <input type="text" name="results" placeholder="Results" defaultValue={movement.results ?? ""} className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="block text-sm text-neutral-400 mb-1">DATE</label>
+              <input type="date" name="scheduledDate" defaultValue={movement.scheduledDate ? new Date(movement.scheduledDate).toISOString().slice(0, 10) : ""} className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />
+            </div>
+            <div>
+              <label className="block text-sm text-neutral-400 mb-1">TIME</label>
+              <input type="time" name="scheduledTime" defaultValue={movement.scheduledTime ?? ""} className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />
+            </div>
+            <div>
+              <label className="block text-sm text-neutral-400 mb-1">D/R (D=Date specific, R=Rolls over)</label>
+              <select name="dateOrRollover" defaultValue={movement.dateOrRollover ?? ""} className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700">
+                <option value="">—</option>
+                <option value="D">D — Date Specific</option>
+                <option value="R">R — Rolls over</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" className="rounded bg-neutral-600 px-4 py-2 text-sm text-white hover:bg-neutral-500">Save changes</button>
+        </form>
+
+        <p className="mt-4">
+          <Link href={backUrl} className="text-neutral-400 hover:text-white text-sm">← Back to responsibility</Link>
+        </p>
+      </div>
+    </main>
+  );
+}

@@ -1,0 +1,15 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ GRANTDEE.DB | Doc. # | Property County | Lot:   | Block  | Tract: | Book:  |
+             | Check  | Check           | Check  | Check  | Check  | Check  |
+
+ GRANTDEE.DB | Pages  | Parcel # | Property Adrs | Property Adrs2 |
+             | Check  | Check    | Check         | Check          |
+
+ GRANTDEE.DB | Property Adrs3 |
+             | Check          |
+
+
+EndQuery

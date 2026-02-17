@@ -1,0 +1,16 @@
+---
+description: After making code changes, commit and push to git so the app deploys (e.g. Vercel).
+alwaysApply: true
+---
+
+# Push to Git After Changes
+
+When you make changes to the codebase that should go live:
+
+1. **Stage** the relevant files (exclude build artifacts, e.g. `tsconfig.tsbuildinfo`, `node_modules`).
+2. **Commit** with a short, clear message describing the change.
+3. **Push** to the default branch (e.g. `main`): `git push origin main`.
+
+Use PowerShell-friendly commands in this project (e.g. `Set-Location "path"; git add ...` or separate commands instead of `&&`).
+
+Do this at the end of the session when you've completed the user's requested work, so the deployment (e.g. Vercel) picks up the changes. If the user says not to push, skip the push step.

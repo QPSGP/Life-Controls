@@ -1,0 +1,12 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ TRANSACT.DB | ContactNumber | InvoiceNumber | Amount | Quantity | T Amount |
+             | Check         | Check _EG02   | Check  | Check    | Check    |
+
+ PAYMENT.DB | InvoiceNumber | Due Date | Date paid |
+            | _EG02         | Check    | Check     |
+
+
+EndQuery

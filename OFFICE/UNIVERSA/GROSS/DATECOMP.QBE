@@ -1,0 +1,12 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ GRANTEES.DB | Doc. #             | Grantee # | Grantee Name        |
+             | Check _EG02, _EG01 | Check     | Check ..Cambridge.. |
+
+ GRANTDEE.DB | Doc. # | Recorded | Document Title |
+             | _EG02  | Check    | Check          |
+
+
+EndQuery

@@ -1,0 +1,9 @@
+---
+description: When user returns or asks for context, read docs/SESSION_CONTEXT.md for project state and recent work.
+alwaysApply: false
+globs: docs/SESSION_CONTEXT.md
+---
+
+# Session context
+
+When the user says they are "back," "returning to this project," or asks "what were we doing?" or "what's the context?", read **docs/SESSION_CONTEXT.md** to restore project state, key paths, and recent session work. Use it to continue from where things left off.

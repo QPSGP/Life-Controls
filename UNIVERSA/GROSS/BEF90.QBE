@@ -1,0 +1,45 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ GRANTDEE.DB | Doc. #             | Recorded         | Document Title |
+             | Check _EG02, _EG01 | Check < 02/28/90 | Check          |
+
+ GRANTDEE.DB | Rec.req.by | Send to | Send adrs | Send adrs2 | Send Tax To |
+             | Check      | Check   | Check     | Check      | Check       |
+
+ GRANTDEE.DB | Send Tax Adrs | Send Tax Adrs2 | Consideration Amt |
+             | Check         | Check          | Check             |
+
+ GRANTDEE.DB | Consideration Other | Property County | Lot:   | Block  |
+             | Check               | Check           | Check  | Check  |
+
+ GRANTDEE.DB | Tract: | Book:  | Pages  | Parcel # | Property Adrs |
+             | Check  | Check  | Check  | Check    | Check         |
+
+ GRANTDEE.DB | Property Adrs2 | Property Adrs3 | Notary name |
+             | Check          | Check          | Check       |
+
+ GRANTDEE.DB | Notarization date | Comments | Signed By: | SignerTitle |
+             | Check             | Check    | Check      | Check       |
+
+ GRANTDEE.DB | Date Signed | Signed By2: | Signer2 Title | Signed By3: |
+             | Check       | Check       | Check         | Check       |
+
+ GRANTDEE.DB | Signer3Title | # of Pages |
+             | Check        | Check      |
+
+ GRANTEES.DB | Doc. #      | Grantee # | Grantee Name | Grantee Address |
+             | Check _EG01 | Check     | Check        | Check           |
+
+ GRANTEES.DB | Grantee Address2 | Grantee Address3 | %      | Comment |
+             | Check            | Check            | Check  | Check   |
+
+ GRANTORS.DB | Doc. #      | Grantor# | Grantor Name | Grantor Address |
+             | Check _EG02 | Check    | Check        | Check           |
+
+ GRANTORS.DB | Grantor Address2 | Grantor Address3 | %      | Comment |
+             | Check            | Check            | Check  | Check   |
+
+
+EndQuery

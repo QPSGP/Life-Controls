@@ -1,0 +1,21 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ PMS.DB | User ID #   | SUBJECT/BUSINESS | AREAS OF PURPOSE |
+        | Check _EG01 | Check            | Check            |
+
+ PMS.DB | AREAS OF RESPONSIBILITY | D/R    | ORDER  | DATE   | TIME   |
+        | Check                   | Check  | Check  | Check  | Check  |
+
+ PMS.DB | PM VERB | PM NOUN | PM OBJECT | ContactNum | PM COMMENT | Objective |
+        | Check   | Check   | Check     | Check      | Check      | Check     |
+
+ PMS.DB | Results | DONE?       | DONEDATE | DONETIME |
+        | Check   | Check ..X.. | Check    | Check    |
+
+ PMS1.DB | UserID# |
+ Insert  | _EG01   |
+
+
+EndQuery

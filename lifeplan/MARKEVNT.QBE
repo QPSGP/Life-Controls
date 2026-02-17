@@ -1,0 +1,18 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ CONTACT1.DB | ContactNum  | ContactLastName | ContactFirstName | Title  |
+             | Check _EG01 | Check           | Check            | Check  |
+
+ CONTACT1.DB | Company | Street Address | City   | State  | ZipInformation |
+             | Check   | Check          | Check  | Check  | Check          |
+
+ CONTACT1.DB | CompanyNumber | FaxNumber |
+             | Check         | Check     |
+
+ CONCAT.DB | Contact Number | Catatgories |
+           | _EG01          | MMPE4       |
+
+
+EndQuery

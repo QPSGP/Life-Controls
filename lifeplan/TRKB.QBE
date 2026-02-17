@@ -1,0 +1,12 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ EXPEND.DB | Subject/Business                | CompanyName | Type of Purchase |
+           | Check Universal Publications(t) | Check       | Check            |
+
+ EXPEND.DB | Amount | Paid by whom | When Paid |
+           | Check  | Check        | Check     |
+
+
+EndQuery

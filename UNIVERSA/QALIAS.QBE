@@ -1,0 +1,12 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ PER_ID.DB | Personal ID  | Last Name | First Name | Middle |
+           | Check _elem1 | Check     | Check      | Check  |
+
+ PERALIAS.DB | Alias ID NUM |
+             | _elem1       |
+
+
+EndQuery

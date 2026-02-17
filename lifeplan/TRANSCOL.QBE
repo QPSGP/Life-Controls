@@ -1,0 +1,24 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ LPTRANS.DB | Customer #  | Order number# | Date   | Time   | EndDate |
+            | Check _EG02 | Check         | Check  | Check  | Check   |
+
+ LPTRANS.DB | EndTime | Action        | Type   | Item   | Unit$  | #Units |
+            | Check   | Check Collect | Check  | Check  | Check  | Check  |
+
+ LPTRANS.DB | Subtotal | Fees   | Other  | TotalOwed | AmountCollected |
+            | Check    | Check  | Check  | Check     | Check           |
+
+ LPTRANS.DB | Balance | Paidout | Type of Payment | Subject/business | MSource |
+            | Check   | Check   | Check           | Check            | Check   |
+
+ CONTACT1.DB | ContactNum | ContactLastName | ContactFirstName | Company     |
+             | _EG02      | Check           | Check            | Check Fam.. |
+
+ CONTACT1.DB | CompanyNumber | PersonalNumber |
+             | Check         | Check          |
+
+
+EndQuery

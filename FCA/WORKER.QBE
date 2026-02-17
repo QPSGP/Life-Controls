@@ -1,0 +1,15 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ WORKER.DB | APID#  | 4WHCompany | 4WHPerson | 4WHTitle | 4WHPhone |
+           | Check  | Check      | Check     | Check    | Check    |
+
+ WORKER.DB | 4WHAddress | 4WHCity | 4WHState | 4WHPC  | 4WHJobDes. |
+           | Check      | Check   | Check    | Check  | Check      |
+
+ WORKER.DB | 4WHStartDate | 4WHEndDate | 4WHWages | 4WHWhyLeft |
+           | Check        | Check      | Check    | Check      |
+
+
+EndQuery

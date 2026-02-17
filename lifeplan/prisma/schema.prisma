@@ -1,0 +1,435 @@
+// Sovereign Life Plan — Prisma schema
+// DB: PostgreSQL (Vercel Postgres / Neon / Supabase)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----- Staff (admin) users -----
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String?
+  lastName     String?
+  role         String   @default("agent") // admin | agent
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  subjectBusinesses SubjectBusiness[]
+
+  @@map("users")
+}
+
+// ----- Life Plan hierarchy (User → Subject/Business → Area of Purpose → Areas of Responsibility → Physical movements) -----
+model SubjectBusiness {
+  id                String   @id @default(cuid())
+  userId            String
+  memberId          String?  // optional: link to member for portal display
+  name              String   // Subject/Business (short label)
+  verb              String?  // sentence structure
+  noun              String?
+  object            String?  // or description
+  objective         String?
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  member Member?          @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  areasOfPurpose AreaOfPurpose[]
+
+  @@map("subject_business")
+}
+
+model AreaOfPurpose {
+  id                 String   @id @default(cuid())
+  subjectBusinessId  String
+  name               String   // short label
+  verb               String?  // sentence structure
+  noun               String?
+  object             String?
+  objective          String?
+  sortOrder          Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  subjectBusiness     SubjectBusiness       @relation(fields: [subjectBusinessId], references: [id], onDelete: Cascade)
+  areasOfResponsibility AreaOfResponsibility[]
+
+  @@map("area_of_purpose")
+}
+
+model AreaOfResponsibility {
+  id                String   @id @default(cuid())
+  areaOfPurposeId   String
+  name              String   // short label
+  verb              String?  // sentence structure
+  noun              String?
+  object            String?
+  objective         String?
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  areaOfPurpose   AreaOfPurpose    @relation(fields: [areaOfPurposeId], references: [id], onDelete: Cascade)
+  physicalMovements PhysicalMovement[]
+
+  @@map("area_of_responsibility")
+}
+
+model PhysicalMovement {
+  id                     String    @id @default(cuid())
+  areaOfResponsibilityId String
+  movementType           String?   // Go To, Read, Think, Write, Call, Operation, Arithmetic, Design/Art, Health
+  verb                   String?   // e.g. use, create
+  noun                   String?
+  object                 String?   // or description
+  objective              String?
+  results                String?
+  scheduledDate          DateTime? // DATE — when scheduled (date-specific)
+  scheduledTime          String?   // TIME — e.g. 09:00
+  dateOrRollover         String?   // D/R — D = Date Specific, R = Rolls over
+  done                   Boolean   @default(false)
+  doneAt                 DateTime? // DDATE/DTIME when done
+  sortOrder              Int       @default(0)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  areaOfResponsibility AreaOfResponsibility @relation(fields: [areaOfResponsibilityId], references: [id], onDelete: Cascade)
+
+  @@map("physical_movement")
+}
+
+// ----- Members (subscribers) -----
+model Member {
+  id           String   @id @default(cuid())
+  email        String
+  passwordHash String?  // for member portal login
+  firstName    String?
+  lastName     String?
+  title        String?
+  company      String?
+  street       String?
+  city         String?
+  state        String?
+  zip          String?
+  country      String?
+  phone        String?
+  fax          String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  categories       MemberCategory[]
+  subscriptions    Subscription[]
+  orders           Order[]
+  invoices         Invoice[]
+  memberPlans      MemberPlan[]
+  communications   Communication[]
+  subjectBusinesses SubjectBusiness[]  // life plans linked to this member (optional)
+  expenditures     Expenditure[]
+
+  @@map("members")
+}
+
+model MemberCategory {
+  id        String   @id @default(cuid())
+  memberId  String
+  category  String   // e.g. "Personal", "MMPE4"
+  createdAt DateTime @default(now())
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, category])
+  @@map("member_categories")
+}
+
+// ----- Subscription plans (tiers) -----
+model SubscriptionPlan {
+  id          String   @id @default(cuid())
+  name        String   // Basic, Standard, Premium, Sovereign
+  slug        String   @unique
+  amountCents Int      // price in USD cents
+  interval    String   // "monthly" | "yearly"
+  features    Json?    // { "basic_plan_view": true, "full_plan_edit": true, ... }
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subscriptions Subscription[]
+}
+
+// ----- Per-member subscription -----
+model Subscription {
+  id                String   @id @default(cuid())
+  memberId          String
+  subscriptionPlanId String
+  status            String   // trial | active | past_due | canceled
+  startedAt         DateTime @default(now())
+  currentPeriodEnd  DateTime
+  canceledAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  member   Member          @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  plan     SubscriptionPlan @relation(fields: [subscriptionPlanId], references: [id])
+
+  @@map("subscriptions")
+}
+
+// ----- Orders (order header) -----
+model Order {
+  id        String   @id @default(cuid())
+  memberId  String
+  orderNumber String? // human-readable
+  totalCents Int     @default(0)
+  status    String   @default("pending") // pending | paid | canceled
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  member      Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  orderLines  OrderLine[]
+}
+
+model OrderLine {
+  id         String   @id @default(cuid())
+  orderId    String
+  type       String?  // e.g. subscription, one-time
+  item       String?
+  unitCents  Int      @default(0)
+  quantity   Int      @default(1)
+  totalCents Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_lines")
+}
+
+// ----- Invoices -----
+model Invoice {
+  id          String    @id @default(cuid())
+  memberId    String
+  invoiceNumber String?
+  amountCents   Int     // in USD cents
+  dueDate      DateTime
+  status       String   @default("open") // open | paid | past_due | canceled
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  member   Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  payments Payment[]
+}
+
+// ----- Payments (fiat + crypto) -----
+model Payment {
+  id                 String   @id @default(cuid())
+  invoiceId          String
+  amountCents        Int      // recorded in USD cents for balance
+  currencyType       String   // "fiat" | "crypto"
+  currencyCode       String   // "USD" | "BTC" | "ETH" | "USDC" etc.
+  paymentProvider    String   // "stripe" | "coinbase_commerce" | "nowpayments"
+  providerPaymentId  String?  @unique // idempotency + reconciliation
+  providerInvoiceId  String?
+  paidAt             DateTime @default(now())
+  createdAt         DateTime @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+// ----- Member life plans (areas of purpose, tasks) -----
+model MemberPlan {
+  id                    String   @id @default(cuid())
+  memberId              String
+  subjectBusiness       String?  // Agency, Public, etc.
+  areasOfPurpose        String?
+  areasOfResponsibility String?
+  sortOrder             Int      @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  member Member        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  tasks  MemberPlanTask[]
+}
+
+model MemberPlanTask {
+  id           String   @id @default(cuid())
+  memberPlanId String
+  verb         String?
+  noun         String?
+  object       String?
+  comment      String?
+  objective    String?
+  results      String?
+  done         Boolean  @default(false)
+  doneAt       DateTime?
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberPlan MemberPlan @relation(fields: [memberPlanId], references: [id], onDelete: Cascade)
+
+  @@map("member_plan_tasks")
+}
+
+// ----- Communications (calls, mailouts) -----
+model Communication {
+  id        String   @id @default(cuid())
+  memberId  String
+  type      String   // "call" | "mailout" | "email"
+  subject   String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("communications")
+}
+
+// ----- Expenditures (legacy EXPEND) -----
+model Expenditure {
+  id          String    @id @default(cuid())
+  memberId    String?   // optional: per-member or global
+  description String
+  amountCents Int
+  date        DateTime  @default(now())
+  notes       String?
+  createdAt   DateTime  @default(now())
+
+  member Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  @@map("expenditures")
+}
+
+// ----- Chores (legacy CHORELST) -----
+model Chore {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  done        Boolean  @default(false)
+  doneAt      DateTime?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("chores")
+}
+
+// ----- UNIVERSA (business demo): documents, grantors, grantees -----
+// Legacy: GRANTDEE, GRANTORS, GRANTEES, PER_ID, PERALIAS
+
+model UniversaDocument {
+  id                  String   @id @default(cuid())
+  docNumber            String   @unique // Doc. #
+  documentNumberAlt    String?  // Document Number (alternate)
+  recordedAt           DateTime?
+  documentTitle        String?
+  recReqBy             String?
+  sendTo               String?
+  sendAdrs             String?
+  sendAdrs2            String?
+  sendTaxTo            String?
+  sendTaxAdrs          String?
+  sendTaxAdrs2         String?
+  considerationAmt     String?  // decimal as string for legacy compatibility
+  considerationOther   String?
+  propertyCounty       String?
+  lot                  String?
+  block                String?
+  tract                String?
+  book                 String?
+  pages                String?
+  parcelNumber         String?
+  propertyAdrs         String?
+  propertyAdrs2        String?
+  propertyAdrs3        String?
+  notaryName           String?
+  notarizationDate     DateTime?
+  comments             String?  @db.Text
+  signedBy             String?
+  signerTitle          String?
+  dateSigned           DateTime?
+  signedBy2            String?
+  signer2Title         String?
+  signedBy3            String?
+  signer3Title         String?
+  numberOfPages       Int?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  grantors  UniversaDocumentGrantor[]
+  grantees  UniversaDocumentGrantee[]
+
+  @@map("universa_documents")
+}
+
+model UniversaDocumentGrantor {
+  id             String   @id @default(cuid())
+  documentId      String
+  grantorNumber  String?  // Grantor#
+  name           String?
+  address        String?  @db.Text
+  address2        String?
+  address3        String?
+  percentShare   String?  // %
+  comment        String?  @db.Text
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  document UniversaDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("universa_document_grantors")
+}
+
+model UniversaDocumentGrantee {
+  id             String   @id @default(cuid())
+  documentId      String
+  granteeNumber  String?  // Grantee #
+  name           String?
+  address        String?  @db.Text
+  address2        String?
+  address3        String?
+  percentShare   String?  // %
+  comment        String?  @db.Text
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  document UniversaDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("universa_document_grantees")
+}
+
+model UniversaPerson {
+  id          String   @id @default(cuid())
+  personalId   String?  @unique // Personal ID (legacy)
+  lastName    String?
+  firstName   String?
+  middle      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  aliases UniversaPersonAlias[]
+
+  @@map("universa_persons")
+}
+
+model UniversaPersonAlias {
+  id           String   @id @default(cuid())
+  personId     String
+  aliasIdNum   String?  // Alias ID NUM
+  createdAt    DateTime @default(now())
+
+  person UniversaPerson @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@map("universa_person_aliases")
+}

@@ -1,0 +1,33 @@
+Query
+
+ANSWER: :PRIV:ANSWER.DB
+
+ PMS.DB | User ID #   | SUBJECT/BUSINESS | AREAS OF PURPOSE |
+        | Check _EG01 | Check _EG02      | Check _EG03      |
+
+ PMS.DB | AREAS OF RESPONSIBILITY | D/R         | ORDER       | DATE        |
+        | Check _EG04             | Check _EG05 | Check _EG06 | Check _EG07 |
+
+ PMS.DB | TIME        | PM VERB     | PM NOUN     | PM OBJECT   | PM COMMENT  |
+        | Check _EG08 | Check _EG09 | Check _EG10 | Check _EG11 | Check _EG12 |
+
+ PMS.DB | Objective   | Results     | DONE?          | DONEDATE    |
+        | Check _EG13 | Check _EG14 | Check _EG15, X | Check _EG16 |
+
+ PMS.DB | DONETIME    |
+        | Check _EG17 |
+
+ PMS1.DB | UserID# | SUBJECT/BUSINESS | AREAS OF PURPOSE |
+ Insert  | _EG01   | _EG02            | _EG03            |
+
+ PMS1.DB | AREAS OF RESPONSIBILITY | D/R   | ORDER | DATE  | TIME  | PM VERB |
+         | _EG04                   | _EG05 | _EG06 | _EG07 | _EG08 | _EG09   |
+
+ PMS1.DB | PM NOUN | PM OBJECT | COMMENT | Objective | Results | DONE? |
+         | _EG10   | _EG11     | _EG12   | _EG13     | _EG14   | _EG15 |
+
+ PMS1.DB | DONEDATE | DONETIME |
+         | _EG16    | _EG17    |
+
+
+EndQuery
