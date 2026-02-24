@@ -48,7 +48,8 @@ export default async function ResponsibilityPage({
           <button type="submit" className="rounded bg-neutral-600 px-4 py-2 text-sm text-white hover:bg-neutral-500">Save changes</button>
         </form>
 
-        <h2 className="text-lg font-medium text-neutral-300 mb-3">Physical movements</h2>
+        <h2 className="text-lg font-medium text-neutral-300 mb-3">Tasks / Physical movements</h2>
+        <p className="text-neutral-500 text-sm mb-3">Add tasks below or open one to edit. These appear in the member&apos;s miniday schedule.</p>
         <form action="/api/life-plan/physical-movement" method="POST" className="rounded bg-neutral-900 p-4 mb-6 space-y-2">
           <input type="hidden" name="areaOfResponsibilityId" value={areaOfResponsibilityId} />
           <div>
@@ -112,6 +113,8 @@ export default async function ResponsibilityPage({
                   <td className="py-2 pr-4 text-neutral-400">{m.results ?? "—"}</td>
                   <td className="py-2 pr-4">{m.done ? "Yes" : "No"}</td>
                   <td className="py-2">
+                    <Link href={"/admin/life-plan/movement/" + m.id + "/edit"} className="text-emerald-400 text-sm hover:underline mr-2">Open</Link>
+                    <span className="mx-1 text-neutral-600">|</span>
                     <Link href={"/admin/life-plan/movement/" + m.id + "/edit"} className="text-neutral-400 text-sm hover:underline mr-2">Edit</Link>
                     <form action={"/api/life-plan/physical-movement/" + m.id + "/done"} method="POST" className="inline">
                       <input type="hidden" name="done" value={m.done ? "false" : "true"} />
