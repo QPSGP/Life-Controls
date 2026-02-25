@@ -46,6 +46,18 @@ async function main() {
     });
   }
   console.log("Seeded subscription plans:", defaultPlans.map((p) => p.name).join(", "));
+
+  const minidayCategories = [
+    "Go To", "Read", "Think", "Write", "Call", "Operation", "Arithmetic", "Design/Art", "Health",
+  ];
+  for (let i = 0; i < minidayCategories.length; i++) {
+    await prisma.minidayCategory.upsert({
+      where: { name: minidayCategories[i] },
+      update: { sortOrder: i, active: true },
+      create: { name: minidayCategories[i], sortOrder: i, active: true },
+    });
+  }
+  console.log("Seeded miniday categories (PM verbs):", minidayCategories.join(", "));
 }
 
 main()

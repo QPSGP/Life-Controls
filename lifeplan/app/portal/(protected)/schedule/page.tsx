@@ -7,6 +7,8 @@ import { SchedulePrintButton } from "./SchedulePrintButton";
 
 export const dynamic = "force-dynamic";
 
+const DEFAULT_VERB_ORDER = [...MOVEMENT_TYPE_ORDER, "Other"];
+
 type ScheduleRow = {
   subjectName: string;
   areaOfPurpose: string;
@@ -16,13 +18,14 @@ type ScheduleRow = {
   results: string;
   done: boolean;
   doneAt: Date | null;
-  movementType: string | null;
+  verb: string | null;
 };
 
-function groupByType(rows: ScheduleRow[]): Map<string, ScheduleRow[]> {
+/** Group by PM verb (miniday category). */
+function groupByVerb(rows: ScheduleRow[]): Map<string, ScheduleRow[]> {
   const map = new Map<string, ScheduleRow[]>();
   for (const r of rows) {
-    const key = r.movementType?.trim() || "Other";
+    const key = r.verb?.trim() || "Other";
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(r);
   }
@@ -55,6 +58,18 @@ export default async function PortalSchedulePage() {
     },
   });
 
+  let categories: { name: string; active: boolean; sortOrder: number }[] = [];
+  try {
+    if ("minidayCategory" in prisma && typeof (prisma as { minidayCategory?: { findMany: (opts: unknown) => Promise<{ name: string; active: boolean; sortOrder: number }[]> } }).minidayCategory?.findMany === "function") {
+      categories = await (prisma as { minidayCategory: { findMany: (opts: unknown) => Promise<{ name: string; active: boolean; sortOrder: number }[]> } }).minidayCategory.findMany({ orderBy: [{ sortOrder: "asc" }, { name: "asc" }] });
+    }
+  } catch {
+    // Prisma client may not include MinidayCategory yet
+  }
+  if (categories.length === 0) {
+    categories = DEFAULT_VERB_ORDER.slice(0, -1).map((name, i) => ({ name, active: true, sortOrder: i }));
+  }
+
   const rows: ScheduleRow[] = movements.map((m) => {
     const sub = m.areaOfResponsibility.areaOfPurpose.subjectBusiness;
     const purpose = m.areaOfResponsibility.areaOfPurpose;
@@ -69,18 +84,26 @@ export default async function PortalSchedulePage() {
       results: m.results ?? "",
       done: m.done,
       doneAt: m.doneAt,
-      movementType: m.movementType,
+      verb: m.verb,
     };
   });
 
-  const byType = groupByType(rows);
-  const sectionOrder: string[] = byType.has("Other") ? [...MOVEMENT_TYPE_ORDER, "Other"] : [...MOVEMENT_TYPE_ORDER];
+  const categoryOrder = [
+    ...categories.filter((c) => c.active).map((c) => c.name),
+    ...categories.filter((c) => !c.active).map((c) => c.name),
+    "Other",
+  ];
+  const byVerb = groupByVerb(rows);
+  const sectionOrder = [
+    ...categoryOrder.filter((k) => byVerb.has(k)),
+    ...[...byVerb.keys()].filter((k) => !categoryOrder.includes(k)),
+  ];
 
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6 print:bg-white print:text-black">
       <div className="max-w-3xl mx-auto print:max-w-none">
         <header className="flex items-center justify-between border-b border-neutral-800 pb-4 mb-6 print:border-black print:mb-4">
-          <h1 className="text-2xl font-semibold print:text-xl">My miniday schedule</h1>
+          <h1 className="text-2xl font-semibold print:text-xl">My miniday schedule <span className="text-neutral-400 font-normal text-lg">(Live PM)</span></h1>
           <div className="flex items-center gap-3 print:hidden">
             <SchedulePrintButton />
             <Link href="/portal" className="text-neutral-400 hover:text-white text-sm">← My account</Link>
@@ -91,13 +114,13 @@ export default async function PortalSchedulePage() {
         {rows.length === 0 ? (
           <p className="text-neutral-500 text-sm">No activities in your plan yet. Your life plan will show here once linked.</p>
         ) : (
-          <section className="schedule-list space-y-8" aria-label="Activities by type">
-            {sectionOrder.map((typeName) => {
-              const sectionRows = byType.get(typeName);
+          <section className="schedule-list space-y-8" aria-label="Activities by verb">
+            {sectionOrder.map((verbName) => {
+              const sectionRows = byVerb.get(verbName);
               if (!sectionRows?.length) return null;
               return (
-                <div key={typeName}>
-                  <h2 className="text-lg font-medium text-neutral-200 mb-3 print:text-black print:border-b print:border-gray-300 print:pb-1">{typeName}</h2>
+                <div key={verbName}>
+                  <h2 className="text-lg font-medium text-neutral-200 mb-3 print:text-black print:border-b print:border-gray-300 print:pb-1">{verbName}</h2>
                   <table className="w-full text-sm border-collapse">
                     <thead>
                       <tr className="border-b border-neutral-700 text-left text-neutral-400 print:border-black">

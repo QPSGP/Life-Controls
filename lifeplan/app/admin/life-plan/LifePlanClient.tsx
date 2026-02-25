@@ -65,7 +65,10 @@ export function LifePlanClient() {
       <div className="max-w-2xl mx-auto">
         <header className="flex items-center justify-between border-b border-neutral-800 pb-4 mb-6">
           <h1 className="text-2xl font-semibold">Life Plan</h1>
-          <Link href="/admin" className="text-neutral-400 hover:text-white text-sm">← Admin</Link>
+          <div className="flex items-center gap-3">
+            <Link href="/admin/life-plan/miniday-categories" className="text-neutral-400 hover:text-white text-sm">Miniday categories (verbs)</Link>
+            <Link href="/admin" className="text-neutral-400 hover:text-white text-sm">← Admin</Link>
+          </div>
         </header>
 
         {error === "missing" && <p className="text-amber-500 text-sm mb-4">Name and user are required.</p>}

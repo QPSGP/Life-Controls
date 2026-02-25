@@ -20,6 +20,20 @@ export default async function MovementEditPage({
   });
   if (!movement) notFound();
   const backUrl = "/admin/life-plan/responsibility/" + movement.areaOfResponsibilityId;
+  const currentVerb = movement.verb ?? "";
+
+  let minidayCategories: { id: string; name: string }[] = [];
+  try {
+    if ("minidayCategory" in prisma && typeof (prisma as { minidayCategory?: { findMany: (opts: unknown) => Promise<{ id: string; name: string }[]> } }).minidayCategory?.findMany === "function") {
+      minidayCategories = await (prisma as { minidayCategory: { findMany: (opts: unknown) => Promise<{ id: string; name: string }[]> } }).minidayCategory.findMany({ where: { active: true }, orderBy: [{ sortOrder: "asc" }, { name: "asc" }] });
+    }
+  } catch {
+    // Prisma client may not include MinidayCategory yet
+  }
+  if (minidayCategories.length === 0) {
+    minidayCategories = MOVEMENT_TYPES.map((name) => ({ id: name, name }));
+  }
+  const verbInList = minidayCategories.some((c) => c.name === currentVerb);
 
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
@@ -31,18 +45,23 @@ export default async function MovementEditPage({
 
         {error && <p className="text-amber-500 text-sm mb-4">Verb is required.</p>}
 
+        <p className="mb-2">
+          <Link href="/admin/life-plan/miniday-categories" className="text-neutral-400 text-sm hover:underline">Edit miniday categories (verbs)</Link>
+        </p>
         <form action={"/api/life-plan/physical-movement/" + id} method="POST" className="rounded bg-neutral-900 p-4 space-y-2">
           <div>
-            <label className="block text-sm text-neutral-400 mb-1">Type (miniday category)</label>
-            <select name="movementType" defaultValue={movement.movementType ?? ""} className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700">
+            <label className="block text-sm text-neutral-400 mb-1">Verb (miniday category)</label>
+            <select name="verb" required defaultValue={verbInList ? currentVerb : (currentVerb ? "__other__" : "")} className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700">
               <option value="">—</option>
-              {MOVEMENT_TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
+              {minidayCategories.map((c) => (
+                <option key={c.id} value={c.name}>{c.name}</option>
               ))}
+              <option value="__other__">Other (enter below)</option>
             </select>
+            <input type="text" name="verbOther" placeholder="Custom verb (if Other)" defaultValue={!verbInList ? currentVerb : ""} className="mt-1 w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" title="Used when Verb is Other" />
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <input type="text" name="verb" placeholder="Verb (required)" required defaultValue={movement.verb ?? ""} className="rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />
+          <input type="hidden" name="movementType" value="" />
+          <div className="grid grid-cols-2 gap-2">
             <input type="text" name="noun" placeholder="Noun" defaultValue={movement.noun ?? ""} className="rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />
             <input type="text" name="object" placeholder="Object" defaultValue={movement.object ?? ""} className="rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />
           </div>

@@ -83,11 +83,23 @@ model AreaOfResponsibility {
   @@map("area_of_responsibility")
 }
 
+// Miniday categories = PM verbs used for grouping (Call, Read, Write, etc.). Admin can add, edit, set inactive; admin only can delete.
+model MinidayCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique // Verb label, e.g. Call, Read, Write
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true) // inactive = hidden from dropdowns, section can still show as "(inactive)"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("miniday_category")
+}
+
 model PhysicalMovement {
   id                     String    @id @default(cuid())
   areaOfResponsibilityId String
-  movementType           String?   // Go To, Read, Think, Write, Call, Operation, Arithmetic, Design/Art, Health
-  verb                   String?   // e.g. use, create
+  movementType           String?   // legacy; grouping uses verb
+  verb                   String?   // PM verb = miniday category (e.g. Call, Read)
   noun                   String?
   object                 String?   // or description
   objective              String?

@@ -28,9 +28,9 @@ export default function AdminReportsPage() {
         <section className="space-y-4">
           <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">Query-style reports (from database)</h2>
           <div className="rounded bg-neutral-900 p-4">
-            <h3 className="font-medium text-neutral-300 mb-2">Report of all physical movements (PM table, life plan)</h3>
+            <h3 className="font-medium text-neutral-300 mb-2">Live PM — Physical movements (PM table, life plan)</h3>
             <p className="text-neutral-500 text-sm mb-2">All rows from the life plan PM table: subject, area of purpose, area of responsibility, verb/noun/object, done status. Same data as the Life Plan hierarchy (Subject → Purpose → Responsibility → Physical movement).</p>
-            <a href="/admin/reports/physical-movements" className="inline-block rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-600 mr-2">View on screen</a>
+            <a href="/admin/reports/physical-movements" className="inline-block rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-600 mr-2">Live PM — View on screen</a>
             <a href="/api/reports/physical-movements?format=csv" className="inline-block rounded bg-neutral-600 px-4 py-2 text-sm text-white hover:bg-neutral-500 mr-2">Download all</a>
             <a href="/api/reports/physical-movements?format=csv&done=yes" className="inline-block rounded bg-neutral-600 px-4 py-2 text-sm text-white hover:bg-neutral-500 mr-2">Download completed only</a>
             <a href="/api/reports/physical-movements?format=csv&done=no" className="inline-block rounded bg-neutral-600 px-4 py-2 text-sm text-white hover:bg-neutral-500">Download pending only</a>

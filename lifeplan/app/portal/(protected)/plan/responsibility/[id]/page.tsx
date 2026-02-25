@@ -31,6 +31,9 @@ export default async function PortalResponsibilityPage({ params }: { params: Pro
         </header>
 
         <h2 className="text-lg font-medium text-neutral-300 mb-3">Physical movements</h2>
+        <p className="mb-3">
+          <Link href="/portal/schedule" className="text-emerald-400 text-sm hover:underline">View tasks in schedule (Live PM) →</Link>
+        </p>
         <ul className="space-y-2">
           {responsibility.physicalMovements.map((m) => (
             <li key={m.id} className="py-2 px-3 rounded bg-neutral-900 text-sm">

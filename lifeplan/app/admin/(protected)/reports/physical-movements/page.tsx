@@ -5,13 +5,14 @@ import { PrintButton } from "./PrintButton";
 
 export const dynamic = "force-dynamic";
 
+const DEFAULT_VERB_ORDER = [...MOVEMENT_TYPE_ORDER, "Other"];
+
 type Row = {
   id: string;
   subjectName: string;
   subjectOwner: string;
   areaOfPurpose: string;
   areaOfResponsibility: string;
-  movementType: string | null;
   verb: string;
   noun: string;
   object: string;
@@ -24,10 +25,11 @@ type Row = {
   doneAt: Date | null;
 };
 
-function groupByType(rows: Row[]): Map<string, Row[]> {
+/** Group by PM verb (miniday category). */
+function groupByVerb(rows: Row[]): Map<string, Row[]> {
   const map = new Map<string, Row[]>();
   for (const r of rows) {
-    const key = r.movementType?.trim() || "Other";
+    const key = r.verb?.trim() || "Other";
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(r);
   }
@@ -52,6 +54,18 @@ export default async function AdminPhysicalMovementsReportPage() {
     },
   });
 
+  let categories: { name: string; active: boolean; sortOrder: number }[] = [];
+  try {
+    if ("minidayCategory" in prisma && typeof (prisma as { minidayCategory?: { findMany: (opts: unknown) => Promise<{ name: string; active: boolean; sortOrder: number }[]> } }).minidayCategory?.findMany === "function") {
+      categories = await (prisma as { minidayCategory: { findMany: (opts: unknown) => Promise<{ name: string; active: boolean; sortOrder: number }[]> } }).minidayCategory.findMany({ orderBy: [{ sortOrder: "asc" }, { name: "asc" }] });
+    }
+  } catch {
+    // Prisma client may not include MinidayCategory yet (run npx prisma generate)
+  }
+  if (categories.length === 0) {
+    categories = DEFAULT_VERB_ORDER.slice(0, -1).map((name, i) => ({ name, active: true, sortOrder: i }));
+  }
+
   const rows: Row[] = movements.map((m) => {
     const sub = m.areaOfResponsibility.areaOfPurpose.subjectBusiness;
     const purpose = m.areaOfResponsibility.areaOfPurpose;
@@ -62,7 +76,6 @@ export default async function AdminPhysicalMovementsReportPage() {
       subjectOwner: [sub.user.firstName, sub.user.lastName].filter(Boolean).join(" ") || sub.user.email,
       areaOfPurpose: purpose.name,
       areaOfResponsibility: resp.name,
-      movementType: m.movementType,
       verb: m.verb ?? "",
       noun: m.noun ?? "",
       object: m.object ?? "",
@@ -76,8 +89,16 @@ export default async function AdminPhysicalMovementsReportPage() {
     };
   });
 
-  const byType = groupByType(rows);
-  const sectionOrder: string[] = byType.has("Other") ? [...MOVEMENT_TYPE_ORDER, "Other"] : [...MOVEMENT_TYPE_ORDER];
+  const categoryOrder = [
+    ...categories.filter((c) => c.active).map((c) => c.name),
+    ...categories.filter((c) => !c.active).map((c) => c.name),
+    "Other",
+  ];
+  const byVerb = groupByVerb(rows);
+  const sectionOrder = [
+    ...categoryOrder.filter((k) => byVerb.has(k)),
+    ...[...byVerb.keys()].filter((k) => !categoryOrder.includes(k)),
+  ];
 
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6 print:bg-white print:text-black">
@@ -92,20 +113,20 @@ export default async function AdminPhysicalMovementsReportPage() {
         </header>
 
         <p className="text-neutral-500 text-sm mb-6 print:text-black">
-          Sections by type (Go To, Read, Think, Write, Call, Operation, Arithmetic, Design/Art, Health). D = Date Specific, R = Rolls over. All PM fields shown.
+          Sections by PM verb (miniday category). D = Date Specific, R = Rolls over. All PM fields shown.
         </p>
 
         {rows.length === 0 ? (
           <p className="text-neutral-500 text-sm">No physical movements in the database yet.</p>
         ) : (
-          <section className="space-y-8" aria-label="Physical movements by type">
-            {sectionOrder.map((typeName) => {
-              const sectionRows = byType.get(typeName);
+          <section className="space-y-8" aria-label="Physical movements by verb">
+            {sectionOrder.map((verbName) => {
+              const sectionRows = byVerb.get(verbName);
               if (!sectionRows?.length) return null;
               return (
-                <div key={typeName}>
+                <div key={verbName}>
                   <h2 className="text-lg font-medium text-neutral-200 mb-3 print:text-black print:border-b print:border-gray-300 print:pb-1">
-                    {typeName}
+                    {verbName}
                   </h2>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
