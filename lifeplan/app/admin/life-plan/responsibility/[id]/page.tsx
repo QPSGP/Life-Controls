@@ -113,9 +113,9 @@ export default async function ResponsibilityPage({
                   <td className="py-2 pr-4 text-neutral-400">{m.results ?? "—"}</td>
                   <td className="py-2 pr-4">{m.done ? "Yes" : "No"}</td>
                   <td className="py-2">
-                    <Link href={"/admin/life-plan/movement/" + m.id + "/edit"} className="text-emerald-400 text-sm hover:underline mr-2">Open</Link>
+                    <a href={"/admin/life-plan/movement/" + m.id + "/edit"} className="text-emerald-400 text-sm hover:underline mr-2">Open</a>
                     <span className="mx-1 text-neutral-600">|</span>
-                    <Link href={"/admin/life-plan/movement/" + m.id + "/edit"} className="text-neutral-400 text-sm hover:underline mr-2">Edit</Link>
+                    <a href={"/admin/life-plan/movement/" + m.id + "/edit"} className="text-neutral-400 text-sm hover:underline mr-2">Edit</a>
                     <form action={"/api/life-plan/physical-movement/" + m.id + "/done"} method="POST" className="inline">
                       <input type="hidden" name="done" value={m.done ? "false" : "true"} />
                       <button type="submit" className="rounded px-2 py-1 text-xs border border-neutral-600 hover:bg-neutral-800">
