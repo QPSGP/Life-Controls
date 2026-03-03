@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { COOKIE_NAME } from "@/lib/auth";
+import { COOKIE_NAME, isAdminPasswordSet } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   const url = new URL(req.url);
   const origin = url.origin;
-  const res = NextResponse.redirect(new URL("/admin/login", origin));
+  const redirectTo = isAdminPasswordSet() ? "/admin/login" : "/";
+  const res = NextResponse.redirect(new URL(redirectTo, origin));
   res.cookies.set(COOKIE_NAME, "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

@@ -5,8 +5,20 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export default async function AdminLoginPage(props: { searchParams: Promise<{ error?: string }> | { error?: string } }) {
-  if (!isAdminPasswordSet()) {
-    redirect("/admin");
+  const passwordRequired = isAdminPasswordSet();
+  if (!passwordRequired) {
+    return (
+      <main className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center p-6">
+        <div className="w-full max-w-sm rounded-lg bg-neutral-900 p-6 border border-neutral-800">
+          <h1 className="text-xl font-semibold mb-4">Admin login</h1>
+          <p className="text-neutral-400 text-sm mb-4">Admin password is not configured. You can go to the dashboard without logging in.</p>
+          <Link href="/admin" className="block w-full rounded bg-emerald-700 py-2 text-white hover:bg-emerald-600 text-center text-sm">Go to Admin dashboard</Link>
+          <p className="mt-4 text-center">
+            <Link href="/" className="text-sm text-neutral-400 hover:text-white">← Home</Link>
+          </p>
+        </div>
+      </main>
+    );
   }
   let error: string | undefined;
   try {
