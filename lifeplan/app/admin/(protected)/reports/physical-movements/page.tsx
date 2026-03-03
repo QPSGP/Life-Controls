@@ -36,23 +36,71 @@ function groupByVerb(rows: Row[]): Map<string, Row[]> {
   return map;
 }
 
-export default async function AdminPhysicalMovementsReportPage() {
-  const movements = await prisma.physicalMovement.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-    include: {
-      areaOfResponsibility: {
-        include: {
-          areaOfPurpose: {
-            include: {
-              subjectBusiness: {
-                include: { user: { select: { firstName: true, lastName: true, email: true } } },
+export default async function AdminPhysicalMovementsReportPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ subjectId?: string; memberId?: string; dateFrom?: string; dateTo?: string; verb?: string; done?: string }>;
+}) {
+  const params = await searchParams;
+  const subjectId = params.subjectId?.trim() || undefined;
+  const memberId = params.memberId?.trim() || undefined;
+  const dateFrom = params.dateFrom ? new Date(params.dateFrom + "T00:00:00") : undefined;
+  const dateTo = params.dateTo ? new Date(params.dateTo + "T23:59:59") : undefined;
+  const filterVerb = params.verb?.trim() || undefined;
+  const filterDone = params.done === "yes" ? true : params.done === "no" ? false : undefined;
+  const dateFilter =
+    dateFrom !== undefined && dateTo !== undefined
+      ? { gte: dateFrom, lte: dateTo }
+      : dateFrom !== undefined
+        ? { gte: dateFrom }
+        : dateTo !== undefined
+          ? { lte: dateTo }
+          : undefined;
+
+  const [movements, subjects, members] = await Promise.all([
+    prisma.physicalMovement.findMany({
+      where: {
+        ...(subjectId && {
+          areaOfResponsibility: {
+            areaOfPurpose: { subjectBusinessId: subjectId },
+          },
+        }),
+        ...(memberId && {
+          areaOfResponsibility: {
+            areaOfPurpose: {
+              subjectBusiness: { memberId },
+            },
+          },
+        }),
+        ...(filterVerb && filterVerb !== "" && { verb: filterVerb }),
+        ...(filterDone !== undefined && { done: filterDone }),
+        ...(dateFilter !== undefined && { scheduledDate: dateFilter }),
+      },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      include: {
+        areaOfResponsibility: {
+          include: {
+            areaOfPurpose: {
+              include: {
+                subjectBusiness: {
+                  include: { user: { select: { firstName: true, lastName: true, email: true } } },
+                },
               },
             },
           },
         },
       },
-    },
-  });
+    }),
+    prisma.subjectBusiness.findMany({
+      orderBy: { sortOrder: "asc" },
+      select: { id: true, name: true },
+    }),
+    prisma.member.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      select: { id: true, email: true, firstName: true, lastName: true },
+    }),
+  ]);
 
   let categories: { name: string; active: boolean; sortOrder: number }[] = [];
   try {
@@ -100,6 +148,9 @@ export default async function AdminPhysicalMovementsReportPage() {
     ...[...byVerb.keys()].filter((k) => !categoryOrder.includes(k)),
   ];
 
+  const verbOptions = [...new Set(rows.map((r) => r.verb).filter(Boolean))].sort();
+  const hasFilters = !!(subjectId || memberId || params.dateFrom || params.dateTo || filterVerb || filterDone !== undefined);
+
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6 print:bg-white print:text-black">
       <div className="max-w-5xl mx-auto print:max-w-none">
@@ -111,6 +162,79 @@ export default async function AdminPhysicalMovementsReportPage() {
           </div>
           <p className="hidden print:block text-sm text-gray-600 mt-1">PM table, life plan</p>
         </header>
+
+        <div className="mb-6 print:hidden flex flex-wrap gap-4 items-end">
+          <form method="GET" className="flex flex-wrap gap-2 items-end">
+            <input type="hidden" name="memberId" value={params.memberId ?? ""} />
+            <input type="hidden" name="dateFrom" value={params.dateFrom ?? ""} />
+            <input type="hidden" name="dateTo" value={params.dateTo ?? ""} />
+            <input type="hidden" name="verb" value={params.verb ?? ""} />
+            <input type="hidden" name="done" value={params.done ?? ""} />
+            <label className="text-sm text-neutral-400">Subject</label>
+            <select name="subjectId" onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm min-w-[140px]" defaultValue={subjectId ?? ""}>
+              <option value="">All</option>
+              {subjects.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </form>
+          <form method="GET" className="flex flex-wrap gap-2 items-end">
+            <input type="hidden" name="subjectId" value={params.subjectId ?? ""} />
+            <input type="hidden" name="dateFrom" value={params.dateFrom ?? ""} />
+            <input type="hidden" name="dateTo" value={params.dateTo ?? ""} />
+            <input type="hidden" name="verb" value={params.verb ?? ""} />
+            <input type="hidden" name="done" value={params.done ?? ""} />
+            <label className="text-sm text-neutral-400">Member plan</label>
+            <select name="memberId" onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm min-w-[160px]" defaultValue={memberId ?? ""}>
+              <option value="">All</option>
+              {members.map((m) => (
+                <option key={m.id} value={m.id}>{[m.firstName, m.lastName].filter(Boolean).join(" ") || m.email}</option>
+              ))}
+            </select>
+          </form>
+          {verbOptions.length > 0 && (
+            <form method="GET" className="flex flex-wrap gap-2 items-end">
+              <input type="hidden" name="subjectId" value={params.subjectId ?? ""} />
+              <input type="hidden" name="memberId" value={params.memberId ?? ""} />
+              <input type="hidden" name="dateFrom" value={params.dateFrom ?? ""} />
+              <input type="hidden" name="dateTo" value={params.dateTo ?? ""} />
+              <input type="hidden" name="done" value={params.done ?? ""} />
+              <label className="text-sm text-neutral-400">Verb</label>
+              <select name="verb" onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" defaultValue={filterVerb ?? ""}>
+                <option value="">All</option>
+                {verbOptions.map((v) => (
+                  <option key={v} value={v}>{v}</option>
+                ))}
+              </select>
+            </form>
+          )}
+          <form method="GET" className="flex flex-wrap gap-2 items-end">
+            <input type="hidden" name="subjectId" value={params.subjectId ?? ""} />
+            <input type="hidden" name="memberId" value={params.memberId ?? ""} />
+            <input type="hidden" name="verb" value={params.verb ?? ""} />
+            <input type="hidden" name="done" value={params.done ?? ""} />
+            <label className="text-sm text-neutral-400">Done</label>
+            <select name="done" onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" defaultValue={params.done ?? "all"}>
+              <option value="all">All</option>
+              <option value="no">To do</option>
+              <option value="yes">Done</option>
+            </select>
+          </form>
+          <form method="GET" className="flex flex-wrap gap-2 items-end">
+            <input type="hidden" name="subjectId" value={params.subjectId ?? ""} />
+            <input type="hidden" name="memberId" value={params.memberId ?? ""} />
+            <input type="hidden" name="verb" value={params.verb ?? ""} />
+            <input type="hidden" name="done" value={params.done ?? ""} />
+            <label className="text-sm text-neutral-400">From</label>
+            <input type="date" name="dateFrom" defaultValue={params.dateFrom ?? ""} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" />
+            <label className="text-sm text-neutral-400">To</label>
+            <input type="date" name="dateTo" defaultValue={params.dateTo ?? ""} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" />
+            <button type="submit" className="rounded bg-neutral-700 px-2 py-1.5 text-sm text-white hover:bg-neutral-600">Apply</button>
+          </form>
+          {hasFilters && (
+            <Link href="/admin/reports/physical-movements" className="text-neutral-400 text-sm hover:text-white">Clear filters</Link>
+          )}
+        </div>
 
         <p className="text-neutral-500 text-sm mb-6 print:text-black">
           Sections by PM verb (miniday category). D = Date Specific, R = Rolls over. All PM fields shown.
@@ -163,7 +287,23 @@ export default async function AdminPhysicalMovementsReportPage() {
                             <td className="py-2 pr-2 print:py-1 print:text-gray-700">{r.scheduledTime || "—"}</td>
                             <td className="py-2 pr-2 print:py-1 print:text-gray-700" title={r.dateOrRollover === "D" ? "Date Specific" : r.dateOrRollover === "R" ? "Rolls over" : ""}>{r.dateOrRollover || "—"}</td>
                             <td className="py-2 pr-2 print:py-1">
-                              {r.done ? <span className="text-emerald-400 print:text-green-700">Yes</span> : <span className="text-amber-500 print:text-amber-700">No</span>}
+                              {r.done ? (
+                                <>
+                                  <span className="text-emerald-400 print:text-green-700">Yes</span>
+                                  <form action={`/api/life-plan/physical-movement/${r.id}/done`} method="POST" className="inline ml-1 print:hidden">
+                                    <input type="hidden" name="done" value="false" />
+                                    <input type="hidden" name="next" value="/admin/reports/physical-movements" />
+                                    <button type="submit" className="text-neutral-400 text-xs hover:text-white underline">Undo</button>
+                                  </form>
+                                </>
+                              ) : (
+                                <form action={`/api/life-plan/physical-movement/${r.id}/done`} method="POST" className="inline print:hidden">
+                                  <input type="hidden" name="done" value="true" />
+                                  <input type="hidden" name="next" value="/admin/reports/physical-movements" />
+                                  <button type="submit" className="rounded px-1.5 py-0.5 text-xs bg-emerald-700 text-white hover:bg-emerald-600">Done</button>
+                                </form>
+                              )}
+                              <span className="print:inline hidden">{r.done ? "Yes" : "No"}</span>
                             </td>
                             <td className="py-2 pr-2 print:py-1 print:text-gray-700">{r.doneAt ? r.doneAt.toLocaleDateString() : "—"}</td>
                             <td className="py-2 pr-2 print:py-1 print:text-gray-700">{r.doneAt ? r.doneAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}</td>

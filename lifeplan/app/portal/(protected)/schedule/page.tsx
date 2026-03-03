@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 const DEFAULT_VERB_ORDER = [...MOVEMENT_TYPE_ORDER, "Other"];
 
 type ScheduleRow = {
+  id: string;
   subjectName: string;
   areaOfPurpose: string;
   areaOfResponsibility: string;
@@ -19,6 +20,7 @@ type ScheduleRow = {
   done: boolean;
   doneAt: Date | null;
   verb: string | null;
+  scheduledDate: Date | null;
 };
 
 /** Group by PM verb (miniday category). */
@@ -32,9 +34,26 @@ function groupByVerb(rows: ScheduleRow[]): Map<string, ScheduleRow[]> {
   return map;
 }
 
-export default async function PortalSchedulePage() {
+export default async function PortalSchedulePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ verb?: string; done?: string; dateFrom?: string; dateTo?: string; error?: string }>;
+}) {
   const memberId = await getMemberIdFromCookie();
   if (!memberId) redirect("/login");
+  const params = await searchParams;
+  const filterVerb = params.verb?.trim() || undefined;
+  const filterDone = params.done === "yes" ? true : params.done === "no" ? false : undefined;
+  const dateFrom = params.dateFrom ? new Date(params.dateFrom + "T00:00:00") : undefined;
+  const dateTo = params.dateTo ? new Date(params.dateTo + "T23:59:59") : undefined;
+  const dateFilter =
+    dateFrom !== undefined && dateTo !== undefined
+      ? { gte: dateFrom, lte: dateTo }
+      : dateFrom !== undefined
+        ? { gte: dateFrom }
+        : dateTo !== undefined
+          ? { lte: dateTo }
+          : undefined;
 
   const movements = await prisma.physicalMovement.findMany({
     where: {
@@ -43,6 +62,9 @@ export default async function PortalSchedulePage() {
           subjectBusiness: { memberId },
         },
       },
+      ...(filterVerb !== undefined && filterVerb !== "" && { verb: filterVerb }),
+      ...(filterDone !== undefined && { done: filterDone }),
+      ...(dateFilter !== undefined && { scheduledDate: dateFilter }),
     },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     include: {
@@ -76,6 +98,7 @@ export default async function PortalSchedulePage() {
     const resp = m.areaOfResponsibility;
     const task = [m.verb, m.noun, m.object].filter(Boolean).join(" ") || "—";
     return {
+      id: m.id,
       subjectName: sub.name,
       areaOfPurpose: purpose.name,
       areaOfResponsibility: resp.name,
@@ -85,6 +108,7 @@ export default async function PortalSchedulePage() {
       done: m.done,
       doneAt: m.doneAt,
       verb: m.verb,
+      scheduledDate: m.scheduledDate,
     };
   });
 
@@ -99,6 +123,8 @@ export default async function PortalSchedulePage() {
     ...[...byVerb.keys()].filter((k) => !categoryOrder.includes(k)),
   ];
 
+  const verbOptions = [...new Set(rows.map((r) => r.verb).filter(Boolean))].sort();
+
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6 print:bg-white print:text-black">
       <div className="max-w-3xl mx-auto print:max-w-none">
@@ -111,8 +137,60 @@ export default async function PortalSchedulePage() {
           <p className="hidden print:block text-sm text-gray-600 mt-1">Activities I need to do</p>
         </header>
 
+        {params.error === "unauthorized" && <p className="text-amber-500 text-sm mb-4">You can only update tasks in your own plan.</p>}
+        {params.error === "update" && <p className="text-amber-500 text-sm mb-4">Update failed. Try again.</p>}
+
+        <div className="mb-6 print:hidden flex flex-wrap gap-3 items-end">
+          <form method="GET" className="flex flex-wrap gap-2 items-end">
+            <input type="hidden" name="verb" value={params.verb ?? ""} />
+            <input type="hidden" name="dateFrom" value={params.dateFrom ?? ""} />
+            <input type="hidden" name="dateTo" value={params.dateTo ?? ""} />
+            <label className="text-sm text-neutral-400">Done</label>
+            <select name="done" onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" defaultValue={params.done ?? "all"}>
+              <option value="all">All</option>
+              <option value="no">To do</option>
+              <option value="yes">Done</option>
+            </select>
+          </form>
+          {verbOptions.length > 0 && (
+            <form method="GET" className="flex flex-wrap gap-2 items-end">
+              <input type="hidden" name="done" value={params.done ?? ""} />
+              <input type="hidden" name="dateFrom" value={params.dateFrom ?? ""} />
+              <input type="hidden" name="dateTo" value={params.dateTo ?? ""} />
+              <label className="text-sm text-neutral-400">Verb</label>
+              <select name="verb" onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" defaultValue={params.verb ?? ""}>
+                <option value="">All</option>
+                {verbOptions.map((v) => (
+                  <option key={v} value={v}>{v}</option>
+                ))}
+              </select>
+            </form>
+          )}
+          <form method="GET" className="flex flex-wrap gap-2 items-end">
+            <input type="hidden" name="verb" value={params.verb ?? ""} />
+            <input type="hidden" name="done" value={params.done ?? ""} />
+            <label className="text-sm text-neutral-400">From</label>
+            <input type="date" name="dateFrom" defaultValue={params.dateFrom ?? ""} onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" />
+            <label className="text-sm text-neutral-400">To</label>
+            <input type="date" name="dateTo" defaultValue={params.dateTo ?? ""} onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" />
+            <button type="submit" className="rounded bg-neutral-700 px-2 py-1.5 text-sm text-white hover:bg-neutral-600">Apply</button>
+          </form>
+          {(params.verb || params.done || params.dateFrom || params.dateTo) && (
+            <Link href="/portal/schedule" className="text-neutral-400 text-sm hover:text-white">Clear filters</Link>
+          )}
+        </div>
+
         {rows.length === 0 ? (
-          <p className="text-neutral-500 text-sm">No activities in your plan yet. Your life plan will show here once linked.</p>
+          <div className="rounded-lg bg-neutral-900 p-6 text-center">
+            <p className="text-neutral-500 text-sm">
+              {movements.length === 0 && !filterVerb && filterDone === undefined && !dateFrom && !dateTo
+                ? "No activities in your plan yet. Your life plan will show here once linked."
+                : "No activities match the current filters. Try clearing filters."}
+            </p>
+            {(params.verb || params.done || params.dateFrom || params.dateTo) && (
+              <Link href="/portal/schedule" className="inline-block mt-3 text-emerald-400 text-sm hover:underline">Clear filters</Link>
+            )}
+          </div>
         ) : (
           <section className="schedule-list space-y-8" aria-label="Activities by verb">
             {sectionOrder.map((verbName) => {
@@ -142,7 +220,22 @@ export default async function PortalSchedulePage() {
                             {r.objective && <span className="block text-neutral-500 text-xs mt-0.5 print:text-gray-600">{r.objective}</span>}
                           </td>
                           <td className="py-2 pr-3 print:py-1">
-                            {r.done ? <span className="text-emerald-400 print:text-green-700">Yes{r.doneAt ? ` ${r.doneAt.toLocaleDateString()}` : ""}</span> : <span className="text-amber-500 print:text-amber-700">To do</span>}
+                            {r.done ? (
+                              <>
+                                <span className="text-emerald-400 print:text-green-700">Yes{r.doneAt ? ` ${r.doneAt.toLocaleDateString()}` : ""}</span>
+                                <form action={`/api/portal/life-plan/physical-movement/${r.id}/done`} method="POST" className="inline ml-2 print:hidden">
+                                  <input type="hidden" name="done" value="false" />
+                                  <button type="submit" className="text-neutral-400 text-xs hover:text-white underline">Undo</button>
+                                </form>
+                              </>
+                            ) : (
+                              <form action={`/api/portal/life-plan/physical-movement/${r.id}/done`} method="POST" className="inline print:hidden">
+                                <input type="hidden" name="done" value="true" />
+                                <button type="submit" className="rounded px-2 py-1 text-xs bg-emerald-700 text-white hover:bg-emerald-600">Mark done</button>
+                              </form>
+                            )}
+                            {r.done && <span className="print:inline hidden text-green-700">Yes{r.doneAt ? ` ${r.doneAt.toLocaleDateString()}` : ""}</span>}
+                            {!r.done && <span className="print:inline hidden text-amber-700">To do</span>}
                           </td>
                         </tr>
                       ))}

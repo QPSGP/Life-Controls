@@ -32,6 +32,9 @@ export default async function MemberLoginPage({
           <button type="submit" className="w-full rounded bg-emerald-700 py-2 text-white hover:bg-emerald-600">Sign in</button>
         </form>
         <p className="mt-4 text-center text-sm text-neutral-500">
+          <Link href="/login/forgot" className="text-neutral-400 hover:text-white">Forgot password?</Link>
+        </p>
+        <p className="mt-2 text-center text-sm text-neutral-500">
           No account? Ask your admin to add you and set a password.
         </p>
         <p className="mt-2 text-center">

@@ -77,6 +77,25 @@ export default function MinidayCategoriesPage() {
     await fetchCategories();
   };
 
+  const handleReorder = async (id: string, direction: "up" | "down") => {
+    const res = await fetch("/api/life-plan/miniday-categories/" + id + "/reorder", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ direction }),
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Failed to reorder");
+      return;
+    }
+    const data = await res.json();
+    if (Array.isArray(data)) setCategories(data);
+    else await fetchCategories();
+  };
+
+  const hasDbIds = categories.length > 0 && categories[0].id.length > 20;
+
   if (loading) {
     return (
       <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
@@ -125,9 +144,33 @@ export default function MinidayCategoriesPage() {
               </tr>
             </thead>
             <tbody>
-              {categories.map((c) => (
+              {categories.map((c, index) => (
                 <tr key={c.id} className={`border-b border-neutral-800 ${!c.active ? "opacity-60" : ""}`}>
-                  <td className="py-2 pr-4 text-neutral-500">{c.sortOrder}</td>
+                  <td className="py-2 pr-4 text-neutral-500">
+                    {hasDbIds && (
+                      <span className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleReorder(c.id, "up")}
+                          disabled={index === 0}
+                          className="rounded px-1.5 py-0.5 text-xs bg-neutral-700 text-white hover:bg-neutral-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                          title="Move up"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleReorder(c.id, "down")}
+                          disabled={index === categories.length - 1}
+                          className="rounded px-1.5 py-0.5 text-xs bg-neutral-700 text-white hover:bg-neutral-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                          title="Move down"
+                        >
+                          ↓
+                        </button>
+                      </span>
+                    )}
+                    {!hasDbIds && c.sortOrder}
+                  </td>
                   <td className="py-2 pr-4">
                     {editingId === c.id ? (
                       <input
