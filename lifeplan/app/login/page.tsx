@@ -1,6 +1,36 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/db";
+import bcrypt from "bcryptjs";
+import { setMemberCookie } from "@/lib/member-auth";
 
 export const dynamic = "force-dynamic";
+
+async function memberLoginAction(formData: FormData) {
+  "use server";
+  const email = (formData.get("email") as string)?.trim()?.toLowerCase() ?? "";
+  const password = formData.get("password") as string | null;
+  if (!email || !password) {
+    redirect("/login?error=missing");
+  }
+  try {
+    const member = await prisma.member.findFirst({
+      where: { email },
+      select: { id: true, passwordHash: true },
+    });
+    if (!member?.passwordHash) {
+      redirect("/login?error=invalid");
+    }
+    const ok = await bcrypt.compare(password, member.passwordHash);
+    if (!ok) {
+      redirect("/login?error=invalid");
+    }
+    await setMemberCookie(member.id);
+    redirect("/portal");
+  } catch {
+    redirect("/login?error=server");
+  }
+}
 
 export default async function MemberLoginPage({
   searchParams,
@@ -20,7 +50,7 @@ export default async function MemberLoginPage({
             Server error. Run the &quot;DB push and seed&quot; workflow in GitHub Actions once to add the password column, then have admin set a password for your account.
           </p>
         )}
-        <form action="/api/auth/member" method="POST" className="space-y-4">
+        <form action={memberLoginAction} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm text-neutral-400 mb-1">Email</label>
             <input type="email" id="email" name="email" required autoComplete="email" className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />

@@ -1,8 +1,22 @@
 import { redirect } from "next/navigation";
-import { isAdminPasswordSet } from "@/lib/auth";
+import { isAdminPasswordSet, getAdminSessionToken, setAdminCookie } from "@/lib/auth";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
+
+async function adminLoginAction(formData: FormData) {
+  "use server";
+  const password = (formData.get("password") as string)?.trim() ?? "";
+  const expected = process.env.ADMIN_PASSWORD;
+  if (!expected || password !== expected) {
+    redirect("/admin/login?error=1");
+  }
+  if (!getAdminSessionToken()) {
+    redirect("/admin/login?error=config");
+  }
+  await setAdminCookie();
+  redirect("/admin");
+}
 
 export default async function AdminLoginPage(props: { searchParams: Promise<{ error?: string }> | { error?: string } }) {
   const passwordRequired = isAdminPasswordSet();
@@ -39,7 +53,7 @@ export default async function AdminLoginPage(props: { searchParams: Promise<{ er
         {error === "config" && (
           <p className="mb-4 rounded bg-amber-950/50 border border-amber-800 text-amber-200 text-sm px-3 py-2">Server configuration error. Set <code className="bg-neutral-800 px-1">AUTH_SECRET</code> in Vercel (Environment Variables) for admin login to work.</p>
         )}
-        <form action="/api/auth/admin" method="POST" className="space-y-4">
+        <form action={adminLoginAction} className="space-y-4">
           <div>
             <label htmlFor="password" className="block text-sm text-neutral-400 mb-1">Password</label>
             <input type="password" id="password" name="password" required autoFocus className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />
