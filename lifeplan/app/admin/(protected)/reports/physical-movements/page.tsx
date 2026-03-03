@@ -57,50 +57,100 @@ export default async function AdminPhysicalMovementsReportPage({
           ? { lte: dateTo }
           : undefined;
 
-  const [movements, subjects, members] = await Promise.all([
-    prisma.physicalMovement.findMany({
-      where: {
-        ...(subjectId && {
-          areaOfResponsibility: {
-            areaOfPurpose: { subjectBusinessId: subjectId },
-          },
-        }),
-        ...(memberId && {
-          areaOfResponsibility: {
-            areaOfPurpose: {
-              subjectBusiness: { memberId },
+  let movements: Array<{
+    id: string;
+    verb: string | null;
+    noun: string | null;
+    object: string | null;
+    objective: string | null;
+    results: string | null;
+    scheduledDate: Date | null;
+    scheduledTime: string | null;
+    dateOrRollover: string | null;
+    done: boolean;
+    doneAt: Date | null;
+    areaOfResponsibility: {
+      name: string;
+      areaOfPurpose: {
+        name: string;
+        subjectBusiness: {
+          name: string;
+          user: { firstName: string | null; lastName: string | null; email: string } | null;
+        };
+      };
+    };
+  }>;
+  let subjects: { id: string; name: string }[];
+  let members: { id: string; email: string; firstName: string | null; lastName: string | null }[];
+
+  try {
+    const result = await Promise.all([
+      prisma.physicalMovement.findMany({
+        where: {
+          ...(subjectId && {
+            areaOfResponsibility: {
+              areaOfPurpose: { subjectBusinessId: subjectId },
             },
-          },
-        }),
-        ...(filterVerb && filterVerb !== "" && { verb: filterVerb }),
-        ...(filterDone !== undefined && { done: filterDone }),
-        ...(dateFilter !== undefined && { scheduledDate: dateFilter }),
-      },
-      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-      include: {
-        areaOfResponsibility: {
-          include: {
-            areaOfPurpose: {
-              include: {
-                subjectBusiness: {
-                  include: { user: { select: { firstName: true, lastName: true, email: true } } },
+          }),
+          ...(memberId && {
+            areaOfResponsibility: {
+              areaOfPurpose: {
+                subjectBusiness: { memberId },
+              },
+            },
+          }),
+          ...(filterVerb && filterVerb !== "" && { verb: filterVerb }),
+          ...(filterDone !== undefined && { done: filterDone }),
+          ...(dateFilter !== undefined && { scheduledDate: dateFilter }),
+        },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+        include: {
+          areaOfResponsibility: {
+            include: {
+              areaOfPurpose: {
+                include: {
+                  subjectBusiness: {
+                    include: { user: { select: { firstName: true, lastName: true, email: true } } },
+                  },
                 },
               },
             },
           },
         },
-      },
-    }),
-    prisma.subjectBusiness.findMany({
-      orderBy: { sortOrder: "asc" },
-      select: { id: true, name: true },
-    }),
-    prisma.member.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 100,
-      select: { id: true, email: true, firstName: true, lastName: true },
-    }),
-  ]);
+      }),
+      prisma.subjectBusiness.findMany({
+        orderBy: { sortOrder: "asc" },
+        select: { id: true, name: true },
+      }),
+      prisma.member.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 100,
+        select: { id: true, email: true, firstName: true, lastName: true },
+      }),
+    ]);
+    movements = result[0];
+    subjects = result[1];
+    members = result[2];
+  } catch (err) {
+    console.error("Live PM report data fetch error:", err);
+    return (
+      <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-xl font-semibold mb-4">Report of all physical movements</h1>
+          <div className="rounded-lg bg-amber-950/50 border border-amber-800 p-4 text-amber-200 text-sm">
+            <p className="font-medium">Could not load the report.</p>
+            <p className="mt-2">This is often due to the production database schema not matching the app (e.g. missing tables or columns). Run <code className="bg-neutral-800 px-1">npx prisma db push</code> against the production database, then redeploy.</p>
+            <p className="mt-3">
+              <a href="/api/db-status" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">Open /api/db-status</a> to confirm the database connection and basic tables.
+            </p>
+            <p className="mt-2">
+              <Link href="/admin/reports" className="text-emerald-400 hover:underline">← Back to Reports</Link>
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   let categories: { name: string; active: boolean; sortOrder: number }[] = [];
   try {
@@ -118,10 +168,12 @@ export default async function AdminPhysicalMovementsReportPage({
     const sub = m.areaOfResponsibility.areaOfPurpose.subjectBusiness;
     const purpose = m.areaOfResponsibility.areaOfPurpose;
     const resp = m.areaOfResponsibility;
+    const user = sub.user;
+    const subjectOwner = user ? [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email : "—";
     return {
       id: m.id,
       subjectName: sub.name,
-      subjectOwner: [sub.user.firstName, sub.user.lastName].filter(Boolean).join(" ") || sub.user.email,
+      subjectOwner,
       areaOfPurpose: purpose.name,
       areaOfResponsibility: resp.name,
       verb: m.verb ?? "",
