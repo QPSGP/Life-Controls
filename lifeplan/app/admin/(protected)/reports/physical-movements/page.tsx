@@ -56,12 +56,16 @@ function groupByVerb(rows: Row[]): Map<string, Row[]> {
   return map;
 }
 
-export default async function AdminPhysicalMovementsReportPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ subjectId?: string; memberId?: string; dateFrom?: string; dateTo?: string; verb?: string; done?: string }>;
+export default async function AdminPhysicalMovementsReportPage(props: {
+  searchParams?: Promise<{ subjectId?: string; memberId?: string; dateFrom?: string; dateTo?: string; verb?: string; done?: string }> | { subjectId?: string; memberId?: string; dateFrom?: string; dateTo?: string; verb?: string; done?: string };
 }) {
-  const params = await searchParams;
+  let params: { subjectId?: string; memberId?: string; dateFrom?: string; dateTo?: string; verb?: string; done?: string } = {};
+  try {
+    const raw = props.searchParams;
+    params = raw && typeof (raw as Promise<unknown>)?.then === "function" ? await (raw as Promise<typeof params>) : (raw ?? {}) as typeof params;
+  } catch {
+    params = {};
+  }
   const subjectId = params.subjectId?.trim() || undefined;
   const memberId = params.memberId?.trim() || undefined;
   const dateFrom = params.dateFrom ? new Date(params.dateFrom + "T00:00:00") : undefined;
@@ -172,6 +176,26 @@ export default async function AdminPhysicalMovementsReportPage({
     );
   }
 
+  function renderError(msg: string) {
+    return (
+      <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-xl font-semibold mb-4">Report of all physical movements</h1>
+          <div className="rounded-lg bg-amber-950/50 border border-amber-800 p-4 text-amber-200 text-sm">
+            <p className="font-medium">{msg}</p>
+            <p className="mt-3">
+              <a href="/api/db-status" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">Open /api/db-status</a>
+            </p>
+            <p className="mt-2">
+              <Link href="/admin/reports" className="text-emerald-400 hover:underline">← Back to Reports</Link>
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  try {
   let categories: { name: string; active: boolean; sortOrder: number }[] = [];
   try {
     if ("minidayCategory" in prisma && typeof (prisma as { minidayCategory?: { findMany: (opts: unknown) => Promise<{ name: string; active: boolean; sortOrder: number }[]> } }).minidayCategory?.findMany === "function") {
@@ -185,9 +209,28 @@ export default async function AdminPhysicalMovementsReportPage({
   }
 
   const rows: Row[] = movements.map((m) => {
-    const sub = m.areaOfResponsibility.areaOfPurpose.subjectBusiness;
-    const purpose = m.areaOfResponsibility.areaOfPurpose;
     const resp = m.areaOfResponsibility;
+    const purpose = resp?.areaOfPurpose;
+    const sub = purpose?.subjectBusiness;
+    if (!resp || !purpose || !sub) {
+      return {
+        id: m.id,
+        subjectName: "—",
+        subjectOwner: "—",
+        areaOfPurpose: "—",
+        areaOfResponsibility: "—",
+        verb: m.verb ?? "",
+        noun: m.noun ?? "",
+        object: m.object ?? "",
+        objective: m.objective ?? "",
+        results: m.results ?? "",
+        scheduledDate: m.scheduledDate ?? null,
+        scheduledTime: m.scheduledTime ?? null,
+        dateOrRollover: m.dateOrRollover ?? null,
+        done: m.done,
+        doneAt: m.doneAt,
+      };
+    }
     const user = sub.user;
     const subjectOwner = user ? [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email : "—";
     return {
@@ -363,7 +406,7 @@ export default async function AdminPhysicalMovementsReportPage({
                             <td className="py-2 pr-2 print:py-1 print:text-black">{r.object || "—"}</td>
                             <td className="py-2 pr-2 text-neutral-300 print:py-1 print:text-gray-800 max-w-[160px]">{r.objective || "—"}</td>
                             <td className="py-2 pr-2 text-neutral-400 print:py-1 print:text-gray-700">{r.results || "—"}</td>
-                            <td className="py-2 pr-2 print:py-1 print:text-gray-700">{r.scheduledDate ? r.scheduledDate.toLocaleDateString() : "—"}</td>
+                            <td className="py-2 pr-2 print:py-1 print:text-gray-700">{r.scheduledDate instanceof Date && !Number.isNaN(r.scheduledDate.getTime()) ? r.scheduledDate.toLocaleDateString() : "—"}</td>
                             <td className="py-2 pr-2 print:py-1 print:text-gray-700">{r.scheduledTime || "—"}</td>
                             <td className="py-2 pr-2 print:py-1 print:text-gray-700" title={r.dateOrRollover === "D" ? "Date Specific" : r.dateOrRollover === "R" ? "Rolls over" : ""}>{r.dateOrRollover || "—"}</td>
                             <td className="py-2 pr-2 print:py-1">
@@ -387,8 +430,8 @@ export default async function AdminPhysicalMovementsReportPage({
                               )}
                               <span className="print:inline hidden">{r.done ? "Yes" : "No"}</span>
                             </td>
-                            <td className="py-2 pr-2 print:py-1 print:text-gray-700">{r.doneAt ? r.doneAt.toLocaleDateString() : "—"}</td>
-                            <td className="py-2 pr-2 print:py-1 print:text-gray-700">{r.doneAt ? r.doneAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}</td>
+                            <td className="py-2 pr-2 print:py-1 print:text-gray-700">{r.doneAt instanceof Date && !Number.isNaN(r.doneAt.getTime()) ? r.doneAt.toLocaleDateString() : "—"}</td>
+                            <td className="py-2 pr-2 print:py-1 print:text-gray-700">{r.doneAt instanceof Date && !Number.isNaN(r.doneAt.getTime()) ? r.doneAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -408,4 +451,8 @@ export default async function AdminPhysicalMovementsReportPage({
       </div>
     </main>
   );
+  } catch (err) {
+    console.error("Live PM report render error:", err);
+    return renderError("Something went wrong while rendering the report. Check /api/db-status and try again.");
+  }
 }
