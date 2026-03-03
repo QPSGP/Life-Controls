@@ -26,11 +26,9 @@ export default function AdminError({ error, reset }: { error: Error & { digest?:
             <button type="button" onClick={() => reset()} className="rounded bg-neutral-700 px-4 py-2 text-sm text-white hover:bg-neutral-600">
               Try again
             </button>
-            <form action="/api/auth/admin/logout" method="POST" className="inline">
-              <button type="submit" className="rounded bg-amber-800 px-4 py-2 text-sm text-amber-100 hover:bg-amber-700">
-                Clear session and go to login
-              </button>
-            </form>
+            <a href="/api/auth/admin/logout" className="rounded bg-amber-800 px-4 py-2 text-sm text-amber-100 hover:bg-amber-700 inline-block">
+              Clear session and go to login
+            </a>
             <a href="/api/auth/clear-session" className="rounded bg-neutral-700 px-4 py-2 text-sm text-white hover:bg-neutral-600">
               Force clear all sessions
             </a>

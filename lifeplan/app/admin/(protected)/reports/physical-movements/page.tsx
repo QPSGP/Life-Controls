@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { MOVEMENT_TYPE_ORDER } from "@/lib/movement-types";
 import { PrintButton } from "./PrintButton";
@@ -6,6 +7,25 @@ import { PrintButton } from "./PrintButton";
 export const dynamic = "force-dynamic";
 
 const DEFAULT_VERB_ORDER = [...MOVEMENT_TYPE_ORDER, "Other"];
+
+async function reportPageDoneAction(formData: FormData) {
+  "use server";
+  const id = (formData.get("id") as string)?.trim();
+  const done = formData.get("done") === "true";
+  const returnQuery = (formData.get("returnQuery") as string)?.trim() || "";
+  if (!id) {
+    redirect("/admin/reports/physical-movements");
+  }
+  try {
+    await prisma.physicalMovement.update({
+      where: { id },
+      data: { done, doneAt: done ? new Date() : null },
+    });
+  } catch {
+    redirect("/admin/life-plan?error=update");
+  }
+  redirect("/admin/reports/physical-movements" + (returnQuery ? "?" + returnQuery : ""));
+}
 
 type Row = {
   id: string;
@@ -202,6 +222,14 @@ export default async function AdminPhysicalMovementsReportPage({
 
   const verbOptions = [...new Set(rows.map((r) => r.verb).filter(Boolean))].sort();
   const hasFilters = !!(subjectId || memberId || params.dateFrom || params.dateTo || filterVerb || filterDone !== undefined);
+  const q: Record<string, string> = {};
+  if (params.subjectId) q.subjectId = params.subjectId;
+  if (params.memberId) q.memberId = params.memberId;
+  if (params.dateFrom) q.dateFrom = params.dateFrom;
+  if (params.dateTo) q.dateTo = params.dateTo;
+  if (params.verb) q.verb = params.verb;
+  if (params.done) q.done = params.done;
+  const returnQuery = new URLSearchParams(q).toString();
 
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6 print:bg-white print:text-black">
@@ -342,16 +370,18 @@ export default async function AdminPhysicalMovementsReportPage({
                               {r.done ? (
                                 <>
                                   <span className="text-emerald-400 print:text-green-700">Yes</span>
-                                  <form action={`/api/life-plan/physical-movement/${r.id}/done`} method="POST" className="inline ml-1 print:hidden">
+                                  <form action={reportPageDoneAction} className="inline ml-1 print:hidden">
+                                    <input type="hidden" name="id" value={r.id} />
                                     <input type="hidden" name="done" value="false" />
-                                    <input type="hidden" name="next" value="/admin/reports/physical-movements" />
+                                    <input type="hidden" name="returnQuery" value={returnQuery} />
                                     <button type="submit" className="text-neutral-400 text-xs hover:text-white underline">Undo</button>
                                   </form>
                                 </>
                               ) : (
-                                <form action={`/api/life-plan/physical-movement/${r.id}/done`} method="POST" className="inline print:hidden">
+                                <form action={reportPageDoneAction} className="inline print:hidden">
+                                  <input type="hidden" name="id" value={r.id} />
                                   <input type="hidden" name="done" value="true" />
-                                  <input type="hidden" name="next" value="/admin/reports/physical-movements" />
+                                  <input type="hidden" name="returnQuery" value={returnQuery} />
                                   <button type="submit" className="rounded px-1.5 py-0.5 text-xs bg-emerald-700 text-white hover:bg-emerald-600">Done</button>
                                 </form>
                               )}

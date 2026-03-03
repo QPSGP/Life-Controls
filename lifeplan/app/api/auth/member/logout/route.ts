@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MEMBER_COOKIE_NAME } from "@/lib/member-auth";
 
-export async function POST(req: NextRequest) {
-  const url = new URL(req.url);
-  const res = NextResponse.redirect(new URL("/login", url.origin));
+function doLogout(origin: string) {
+  const res = NextResponse.redirect(new URL("/login", origin));
   res.cookies.set(MEMBER_COOKIE_NAME, "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -13,4 +12,12 @@ export async function POST(req: NextRequest) {
     path: "/",
   });
   return res;
+}
+
+export async function GET(req: NextRequest) {
+  return doLogout(new URL(req.url).origin);
+}
+
+export async function POST(req: NextRequest) {
+  return doLogout(new URL(req.url).origin);
 }

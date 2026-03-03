@@ -40,9 +40,7 @@ export default async function PortalPage(props: { searchParams: Promise<{ update
       <div className="max-w-2xl mx-auto">
         <header className="flex items-center justify-between border-b border-neutral-800 pb-4 mb-8">
           <h1 className="text-2xl font-semibold">My account</h1>
-          <form action="/api/auth/member/logout" method="POST">
-            <button type="submit" className="text-neutral-400 hover:text-white text-sm">Sign out</button>
-          </form>
+          <a href="/api/auth/member/logout" className="text-neutral-400 hover:text-white text-sm">Sign out</a>
         </header>
 
         {params.updated && <p className="text-emerald-500 text-sm mb-4">Profile updated.</p>}

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { COOKIE_NAME, isAdminPasswordSet } from "@/lib/auth";
 
-export async function POST(req: NextRequest) {
-  const url = new URL(req.url);
-  const origin = url.origin;
+function doLogout(origin: string) {
   const redirectTo = isAdminPasswordSet() ? "/admin/login" : "/";
   const res = NextResponse.redirect(new URL(redirectTo, origin));
   res.cookies.set(COOKIE_NAME, "", {
@@ -15,4 +13,12 @@ export async function POST(req: NextRequest) {
     path: "/",
   });
   return res;
+}
+
+export async function GET(req: NextRequest) {
+  return doLogout(new URL(req.url).origin);
+}
+
+export async function POST(req: NextRequest) {
+  return doLogout(new URL(req.url).origin);
 }
