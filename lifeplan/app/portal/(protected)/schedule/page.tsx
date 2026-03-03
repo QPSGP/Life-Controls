@@ -123,7 +123,7 @@ export default async function PortalSchedulePage({
     ...[...byVerb.keys()].filter((k) => !categoryOrder.includes(k)),
   ];
 
-  const verbOptions = [...new Set(rows.map((r) => r.verb).filter(Boolean))].sort();
+  const verbOptions: string[] = [...new Set(rows.map((r) => r.verb).filter((v): v is string => typeof v === "string" && v.length > 0))].sort();
 
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6 print:bg-white print:text-black">
