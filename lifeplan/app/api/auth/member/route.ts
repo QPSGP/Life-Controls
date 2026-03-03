@@ -3,6 +3,11 @@ import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { setMemberCookie } from "@/lib/member-auth";
 
+export async function GET(req: NextRequest) {
+  const origin = new URL(req.url).origin;
+  return NextResponse.redirect(new URL("/login", origin));
+}
+
 export async function POST(req: NextRequest) {
   const origin = new URL(req.url).origin;
   try {

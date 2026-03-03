@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminSessionToken, setAdminCookie } from "@/lib/auth";
 
+export async function GET(req: NextRequest) {
+  return NextResponse.redirect(new URL("/admin/login", req.url));
+}
+
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const password = formData.get("password") as string | null;
