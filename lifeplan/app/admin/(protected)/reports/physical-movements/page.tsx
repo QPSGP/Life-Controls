@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { MOVEMENT_TYPE_ORDER } from "@/lib/movement-types";
 import { PrintButton } from "./PrintButton";
+import { ReportFilters } from "./ReportFilters";
 
 export const dynamic = "force-dynamic";
 
@@ -286,78 +287,13 @@ export default async function AdminPhysicalMovementsReportPage(props: {
           <p className="hidden print:block text-sm text-gray-600 mt-1">PM table, life plan</p>
         </header>
 
-        <div className="mb-6 print:hidden flex flex-wrap gap-4 items-end">
-          <form method="GET" className="flex flex-wrap gap-2 items-end">
-            <input type="hidden" name="memberId" value={params.memberId ?? ""} />
-            <input type="hidden" name="dateFrom" value={params.dateFrom ?? ""} />
-            <input type="hidden" name="dateTo" value={params.dateTo ?? ""} />
-            <input type="hidden" name="verb" value={params.verb ?? ""} />
-            <input type="hidden" name="done" value={params.done ?? ""} />
-            <label className="text-sm text-neutral-400">Subject</label>
-            <select name="subjectId" onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm min-w-[140px]" defaultValue={subjectId ?? ""}>
-              <option value="">All</option>
-              {subjects.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-          </form>
-          <form method="GET" className="flex flex-wrap gap-2 items-end">
-            <input type="hidden" name="subjectId" value={params.subjectId ?? ""} />
-            <input type="hidden" name="dateFrom" value={params.dateFrom ?? ""} />
-            <input type="hidden" name="dateTo" value={params.dateTo ?? ""} />
-            <input type="hidden" name="verb" value={params.verb ?? ""} />
-            <input type="hidden" name="done" value={params.done ?? ""} />
-            <label className="text-sm text-neutral-400">Member plan</label>
-            <select name="memberId" onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm min-w-[160px]" defaultValue={memberId ?? ""}>
-              <option value="">All</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>{[m.firstName, m.lastName].filter(Boolean).join(" ") || m.email}</option>
-              ))}
-            </select>
-          </form>
-          {verbOptions.length > 0 && (
-            <form method="GET" className="flex flex-wrap gap-2 items-end">
-              <input type="hidden" name="subjectId" value={params.subjectId ?? ""} />
-              <input type="hidden" name="memberId" value={params.memberId ?? ""} />
-              <input type="hidden" name="dateFrom" value={params.dateFrom ?? ""} />
-              <input type="hidden" name="dateTo" value={params.dateTo ?? ""} />
-              <input type="hidden" name="done" value={params.done ?? ""} />
-              <label className="text-sm text-neutral-400">Verb</label>
-              <select name="verb" onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" defaultValue={filterVerb ?? ""}>
-                <option value="">All</option>
-                {verbOptions.map((v) => (
-                  <option key={v} value={v}>{v}</option>
-                ))}
-              </select>
-            </form>
-          )}
-          <form method="GET" className="flex flex-wrap gap-2 items-end">
-            <input type="hidden" name="subjectId" value={params.subjectId ?? ""} />
-            <input type="hidden" name="memberId" value={params.memberId ?? ""} />
-            <input type="hidden" name="verb" value={params.verb ?? ""} />
-            <input type="hidden" name="done" value={params.done ?? ""} />
-            <label className="text-sm text-neutral-400">Done</label>
-            <select name="done" onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" defaultValue={params.done ?? "all"}>
-              <option value="all">All</option>
-              <option value="no">To do</option>
-              <option value="yes">Done</option>
-            </select>
-          </form>
-          <form method="GET" className="flex flex-wrap gap-2 items-end">
-            <input type="hidden" name="subjectId" value={params.subjectId ?? ""} />
-            <input type="hidden" name="memberId" value={params.memberId ?? ""} />
-            <input type="hidden" name="verb" value={params.verb ?? ""} />
-            <input type="hidden" name="done" value={params.done ?? ""} />
-            <label className="text-sm text-neutral-400">From</label>
-            <input type="date" name="dateFrom" defaultValue={params.dateFrom ?? ""} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" />
-            <label className="text-sm text-neutral-400">To</label>
-            <input type="date" name="dateTo" defaultValue={params.dateTo ?? ""} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" />
-            <button type="submit" className="rounded bg-neutral-700 px-2 py-1.5 text-sm text-white hover:bg-neutral-600">Apply</button>
-          </form>
-          {hasFilters && (
-            <Link href="/admin/reports/physical-movements" className="text-neutral-400 text-sm hover:text-white">Clear filters</Link>
-          )}
-        </div>
+        <ReportFilters
+          params={params}
+          subjects={subjects}
+          members={members}
+          verbOptions={verbOptions}
+          hasFilters={hasFilters}
+        />
 
         <p className="text-neutral-500 text-sm mb-6 print:text-black">
           Sections by PM verb (miniday category). D = Date Specific, R = Rolls over. All PM fields shown.
