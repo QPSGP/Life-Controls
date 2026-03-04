@@ -34,6 +34,28 @@
 5. **Fallbacks when MinidayCategory is missing**
    - If `npx prisma generate` hasn’t been run (or failed due to file lock), `prisma.minidayCategory` is undefined. All pages that use it now fall back to the static verb list so the **PM table and schedule still load** and verb dropdowns still work with defaults.
 
+6. **Auth 405 fixes (login, logout)**
+   - **Login:** Admin and member login now use **Server Actions** on the login pages instead of POST to `/api/auth/admin` or `/api/auth/member`, so the browser never hits those API routes on submit and the 405 is avoided.
+   - **Logout:** Logout API routes (`/api/auth/admin/logout`, `/api/auth/member/logout`) now support **GET and POST** (both clear cookie and redirect). All logout UI was changed from forms to **links** (`<a href="/api/auth/admin/logout">` etc.) so logout uses GET and works reliably.
+
+7. **Live PM 405 and “Something went wrong”**
+   - **Done/Undo on report:** “Mark done” and “Undo” on the Live PM report page now use a **Server Action** (`reportPageDoneAction`) instead of POST to `/api/life-plan/physical-movement/[id]/done`, so no 405 from that API. The done API also has a GET handler that redirects to the report.
+   - **Report page crash:** The real error was **“Event handlers cannot be passed to Client Component props”** — the filter `<select>` elements had `onChange` in a Server Component. Fix: **ReportFilters** was moved into a **Client Component** (`ReportFilters.tsx` with `"use client"`) that receives only serializable props (params, subjects, members, verbOptions, hasFilters) and renders the filter forms with `onChange` there. The main report page stays a Server Component and just renders `<ReportFilters ... />`.
+   - **Defensive fixes on report page:** `searchParams` is handled when undefined or not a Promise (e.g. in production); null-safe relation chain when building rows (subjectBusiness / areaOfPurpose / areaOfResponsibility); safe date formatting for `scheduledDate` and `doneAt`; try/catch around render with a friendly error UI and link to `/api/db-status`.
+
+---
+
+## Summary of recent changes (quick reference)
+
+| Area | Change |
+|------|--------|
+| **Admin login** | Server Action on `/admin/login`; no POST to `/api/auth/admin`. |
+| **Member login** | Server Action on `/login`; no POST to `/api/auth/member`. |
+| **Admin logout** | Link to `/api/auth/admin/logout`; route supports GET + POST. |
+| **Member logout** | Link to `/api/auth/member/logout`; route supports GET + POST. |
+| **Live PM report** | Filters in Client Component `ReportFilters.tsx`; Done/Undo via Server Action; safe searchParams, null-safe relations, safe dates, try/catch. |
+| **Done API** | `GET /api/life-plan/physical-movement/[id]/done` redirects to report; POST still used by other callers. |
+
 ---
 
 ## When you come back
