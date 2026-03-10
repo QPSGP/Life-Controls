@@ -30,7 +30,7 @@ export async function GET(
   }
 }
 
-/** POST /api/universa/documents/[id] — update document (formData) */
+/** POST /api/universa/documents/[id] — update document (formData). If wizardStep=property, only property fields are updated; redirectTo used for wizard next step. */
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -46,48 +46,72 @@ export async function POST(
     const d = new Date(s);
     return isNaN(d.getTime()) ? null : d;
   };
+  const wizardStep = get("wizardStep");
+  const redirectTo = (formData.get("redirectTo") as string)?.trim() || null;
+  const defaultRedirect = "/admin/documents/" + id + "/edit";
+
+  const fullData = {
+    documentTitle: get("documentTitle"),
+    documentNumberAlt: get("documentNumberAlt"),
+    recordedAt: getDate("recordedAt"),
+    dateSigned: getDate("dateSigned"),
+    notarizationDate: getDate("notarizationDate"),
+    recReqBy: get("recReqBy"),
+    sendTo: get("sendTo"),
+    sendAdrs: get("sendAdrs"),
+    sendAdrs2: get("sendAdrs2"),
+    sendTaxTo: get("sendTaxTo"),
+    sendTaxAdrs: get("sendTaxAdrs"),
+    sendTaxAdrs2: get("sendTaxAdrs2"),
+    considerationAmt: get("considerationAmt"),
+    considerationOther: get("considerationOther"),
+    propertyCounty: get("propertyCounty"),
+    lot: get("lot"),
+    block: get("block"),
+    tract: get("tract"),
+    book: get("book"),
+    pages: get("pages"),
+    parcelNumber: get("parcelNumber"),
+    propertyAdrs: get("propertyAdrs"),
+    propertyAdrs2: get("propertyAdrs2"),
+    propertyAdrs3: get("propertyAdrs3"),
+    notaryName: get("notaryName"),
+    comments: get("comments"),
+    signedBy: get("signedBy"),
+    signerTitle: get("signerTitle"),
+    signedBy2: get("signedBy2"),
+    signer2Title: get("signer2Title"),
+    signedBy3: get("signedBy3"),
+    signer3Title: get("signer3Title"),
+    numberOfPages: formData.get("numberOfPages") ? parseInt(String(formData.get("numberOfPages")), 10) || null : null,
+  };
+
+  const propertyOnly =
+    wizardStep === "property"
+      ? {
+          propertyCounty: fullData.propertyCounty,
+          lot: fullData.lot,
+          block: fullData.block,
+          tract: fullData.tract,
+          book: fullData.book,
+          pages: fullData.pages,
+          parcelNumber: fullData.parcelNumber,
+          propertyAdrs: fullData.propertyAdrs,
+          propertyAdrs2: fullData.propertyAdrs2,
+          propertyAdrs3: fullData.propertyAdrs3,
+        }
+      : null;
+
   try {
     await prisma.universaDocument.update({
       where: { id },
-      data: {
-        documentTitle: get("documentTitle"),
-        documentNumberAlt: get("documentNumberAlt"),
-        recordedAt: getDate("recordedAt"),
-        dateSigned: getDate("dateSigned"),
-        notarizationDate: getDate("notarizationDate"),
-        recReqBy: get("recReqBy"),
-        sendTo: get("sendTo"),
-        sendAdrs: get("sendAdrs"),
-        sendAdrs2: get("sendAdrs2"),
-        sendTaxTo: get("sendTaxTo"),
-        sendTaxAdrs: get("sendTaxAdrs"),
-        sendTaxAdrs2: get("sendTaxAdrs2"),
-        considerationAmt: get("considerationAmt"),
-        considerationOther: get("considerationOther"),
-        propertyCounty: get("propertyCounty"),
-        lot: get("lot"),
-        block: get("block"),
-        tract: get("tract"),
-        book: get("book"),
-        pages: get("pages"),
-        parcelNumber: get("parcelNumber"),
-        propertyAdrs: get("propertyAdrs"),
-        propertyAdrs2: get("propertyAdrs2"),
-        propertyAdrs3: get("propertyAdrs3"),
-        notaryName: get("notaryName"),
-        comments: get("comments"),
-        signedBy: get("signedBy"),
-        signerTitle: get("signerTitle"),
-        signedBy2: get("signedBy2"),
-        signer2Title: get("signer2Title"),
-        signedBy3: get("signedBy3"),
-        signer3Title: get("signer3Title"),
-        numberOfPages: formData.get("numberOfPages") ? parseInt(String(formData.get("numberOfPages")), 10) || null : null,
-      },
+      data: propertyOnly ?? fullData,
     });
-    return NextResponse.redirect(new URL("/admin/documents/" + id + "/edit", req.nextUrl.origin));
+    const target = redirectTo ? redirectTo.replace("{id}", id) : defaultRedirect;
+    return NextResponse.redirect(new URL(target, req.nextUrl.origin));
   } catch (e) {
     console.error(e);
-    return NextResponse.redirect(new URL("/admin/documents/" + id + "/edit?error=update", req.nextUrl.origin));
+    const fallback = redirectTo ? redirectTo.replace("{id}", id) + (redirectTo.includes("?") ? "&" : "?") + "error=update" : "/admin/documents/" + id + "/edit?error=update";
+    return NextResponse.redirect(new URL(fallback, req.nextUrl.origin));
   }
 }

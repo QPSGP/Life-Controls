@@ -11,19 +11,31 @@ type ReportRow = {
   dateSigned: string;
   considerationAmt: string;
   propertyCounty: string;
+  lot?: string;
+  block?: string;
+  tract?: string;
+  book?: string;
+  pages?: string;
+  parcelNumber?: string;
   propertyAdrs: string;
+  propertyAdrs2?: string;
+  propertyAdrs3?: string;
   granteeNames: string;
   grantorNames: string;
 };
+
+type QueryType = "full" | "byDate" | "byGrantee" | "byGrantor" | "byTitle" | "bySigner" | "property";
 
 export default function AdminDocumentsReportsPage() {
   const [rows, setRows] = useState<ReportRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState<"full" | "byDate" | "byGrantee" | "byGrantor">("full");
+  const [query, setQuery] = useState<QueryType>("full");
   const [recordedFrom, setRecordedFrom] = useState("");
   const [recordedTo, setRecordedTo] = useState("");
   const [nameSearch, setNameSearch] = useState("");
+  const [titleSearch, setTitleSearch] = useState("");
+  const [signerSearch, setSignerSearch] = useState("");
 
   const fetchReport = () => {
     setLoading(true);
@@ -31,6 +43,8 @@ export default function AdminDocumentsReportsPage() {
     if (recordedFrom) params.set("recordedFrom", recordedFrom);
     if (recordedTo) params.set("recordedTo", recordedTo);
     if (nameSearch.trim() && (query === "byGrantee" || query === "byGrantor")) params.set("name", nameSearch.trim());
+    if (titleSearch.trim() && query === "byTitle") params.set("title", titleSearch.trim());
+    if (signerSearch.trim() && query === "bySigner") params.set("signer", signerSearch.trim());
     fetch(`/api/universa/reports?${params.toString()}`, { credentials: "include" })
       .then((res) => {
         if (res.status === 401) {
@@ -56,8 +70,12 @@ export default function AdminDocumentsReportsPage() {
     if (recordedFrom) params.set("recordedFrom", recordedFrom);
     if (recordedTo) params.set("recordedTo", recordedTo);
     if (nameSearch.trim() && (query === "byGrantee" || query === "byGrantor")) params.set("name", nameSearch.trim());
+    if (titleSearch.trim() && query === "byTitle") params.set("title", titleSearch.trim());
+    if (signerSearch.trim() && query === "bySigner") params.set("signer", signerSearch.trim());
     return `/api/universa/reports?${params.toString()}`;
   };
+
+  const isPropertyView = query === "property";
 
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
@@ -77,16 +95,19 @@ export default function AdminDocumentsReportsPage() {
               <span className="text-neutral-500">View</span>
               <select
                 value={query}
-                onChange={(e) => setQuery(e.target.value as typeof query)}
+                onChange={(e) => setQuery(e.target.value as QueryType)}
                 className="rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700"
               >
                 <option value="full">Full list (all documents)</option>
                 <option value="byDate">By recorded date range</option>
+                <option value="byTitle">By document title (contains)</option>
+                <option value="bySigner">By signer name (contains)</option>
                 <option value="byGrantee">By grantee name</option>
                 <option value="byGrantor">By grantor name</option>
+                <option value="property">Property focus (lot, block, tract, etc.)</option>
               </select>
             </label>
-            {(query === "byDate" || query === "full") && (
+            {(query === "byDate" || query === "full" || query === "property") && (
               <>
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="text-neutral-500">Recorded from</span>
@@ -97,6 +118,18 @@ export default function AdminDocumentsReportsPage() {
                   <input type="date" value={recordedTo} onChange={(e) => setRecordedTo(e.target.value)} className="rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />
                 </label>
               </>
+            )}
+            {query === "byTitle" && (
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="text-neutral-500">Title contains</span>
+                <input type="text" value={titleSearch} onChange={(e) => setTitleSearch(e.target.value)} placeholder="e.g. Judgement" className="rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700 min-w-[180px]" />
+              </label>
+            )}
+            {query === "bySigner" && (
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="text-neutral-500">Signer name contains</span>
+                <input type="text" value={signerSearch} onChange={(e) => setSignerSearch(e.target.value)} placeholder="e.g. Bernard Gross" className="rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700 min-w-[180px]" />
+              </label>
             )}
             {(query === "byGrantee" || query === "byGrantor") && (
               <label className="flex flex-col gap-1 text-sm">
@@ -125,10 +158,27 @@ export default function AdminDocumentsReportsPage() {
                   <th className="py-2 pr-4">Doc #</th>
                   <th className="py-2 pr-4">Title</th>
                   <th className="py-2 pr-4">Recorded</th>
-                  <th className="py-2 pr-4">Signed</th>
-                  <th className="py-2 pr-4">Consideration</th>
-                  <th className="py-2 pr-4">County</th>
-                  <th className="py-2 pr-4">Property</th>
+                  {!isPropertyView && <th className="py-2 pr-4">Signed</th>}
+                  {isPropertyView && (
+                    <>
+                      <th className="py-2 pr-4">County</th>
+                      <th className="py-2 pr-4">Lot</th>
+                      <th className="py-2 pr-4">Block</th>
+                      <th className="py-2 pr-4">Tract</th>
+                      <th className="py-2 pr-4">Book</th>
+                      <th className="py-2 pr-4">Pages</th>
+                      <th className="py-2 pr-4">Parcel #</th>
+                      <th className="py-2 pr-4">Property</th>
+                    </>
+                  )}
+                  {!isPropertyView && (
+                    <>
+                      <th className="py-2 pr-4">Consideration</th>
+                      <th className="py-2 pr-4">County</th>
+                      <th className="py-2 pr-4">Property</th>
+                    </>
+                  )}
+                  {isPropertyView && <th className="py-2 pr-4">Consideration</th>}
                   <th className="py-2 pr-4">Grantees</th>
                   <th className="py-2 pr-4">Grantors</th>
                 </tr>
@@ -139,10 +189,27 @@ export default function AdminDocumentsReportsPage() {
                     <td className="py-2 pr-4 font-mono text-neutral-300">{r.docNumber}</td>
                     <td className="py-2 pr-4 max-w-[180px] truncate" title={r.documentTitle}>{r.documentTitle || "—"}</td>
                     <td className="py-2 pr-4 text-neutral-400">{r.recordedAt || "—"}</td>
-                    <td className="py-2 pr-4 text-neutral-400">{r.dateSigned || "—"}</td>
-                    <td className="py-2 pr-4 text-neutral-400">{r.considerationAmt || "—"}</td>
-                    <td className="py-2 pr-4 text-neutral-400">{r.propertyCounty || "—"}</td>
-                    <td className="py-2 pr-4 max-w-[120px] truncate text-neutral-400" title={r.propertyAdrs}>{r.propertyAdrs || "—"}</td>
+                    {!isPropertyView && <td className="py-2 pr-4 text-neutral-400">{r.dateSigned || "—"}</td>}
+                    {isPropertyView && (
+                      <>
+                        <td className="py-2 pr-4 text-neutral-400">{r.propertyCounty || "—"}</td>
+                        <td className="py-2 pr-4 text-neutral-400">{r.lot || "—"}</td>
+                        <td className="py-2 pr-4 text-neutral-400">{r.block || "—"}</td>
+                        <td className="py-2 pr-4 text-neutral-400">{r.tract || "—"}</td>
+                        <td className="py-2 pr-4 text-neutral-400">{r.book || "—"}</td>
+                        <td className="py-2 pr-4 text-neutral-400">{r.pages || "—"}</td>
+                        <td className="py-2 pr-4 text-neutral-400">{r.parcelNumber || "—"}</td>
+                        <td className="py-2 pr-4 max-w-[120px] truncate text-neutral-400" title={[r.propertyAdrs, r.propertyAdrs2, r.propertyAdrs3].filter(Boolean).join(" ")}>{r.propertyAdrs || "—"}</td>
+                      </>
+                    )}
+                    {!isPropertyView && (
+                      <>
+                        <td className="py-2 pr-4 text-neutral-400">{r.considerationAmt || "—"}</td>
+                        <td className="py-2 pr-4 text-neutral-400">{r.propertyCounty || "—"}</td>
+                        <td className="py-2 pr-4 max-w-[120px] truncate text-neutral-400" title={r.propertyAdrs}>{r.propertyAdrs || "—"}</td>
+                      </>
+                    )}
+                    {isPropertyView && <td className="py-2 pr-4 text-neutral-400">{r.considerationAmt || "—"}</td>}
                     <td className="py-2 pr-4 text-neutral-400 max-w-[140px] truncate" title={r.granteeNames}>{r.granteeNames || "—"}</td>
                     <td className="py-2 pr-4 text-neutral-400 max-w-[140px] truncate" title={r.grantorNames}>{r.grantorNames || "—"}</td>
                   </tr>

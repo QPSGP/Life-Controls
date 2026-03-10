@@ -1,6 +1,6 @@
-# Sovereign Life Plan
+# Sovereign Life Control Tool
 
-Multi-tiered online subscription service — fiat (Stripe) and crypto (Coinbase Commerce / NowPayments) payments. Built with Next.js, Prisma, and PostgreSQL. Deploy to **Vercel** from **GitHub**.
+The tool that gives you iron-clad control of your life—personal and business. Multi-tiered online subscription service — fiat (Stripe) and crypto (Coinbase Commerce / NowPayments) payments. Built with Next.js, Prisma, and PostgreSQL. Deploy to **Vercel** from **GitHub**.
 
 ---
 

@@ -36,6 +36,7 @@
 
 - Detailed project context is in **lifeplan/docs/SESSION_CONTEXT.md**.
 - How tables work: **lifeplan/docs/HOW_TABLES_FUNCTION.md**.
+- **UNIVERSA analysis and rebuild plan:** **lifeplan/docs/UNIVERSA_ANALYSIS.md** (folder structure, tables, queries) and **lifeplan/docs/UNIVERSA_REBUILD_PLAN.md** (phased plan: data model → forms → reports → persons/aliases → polish).
 - To work on the Next.js app, open or refer to the **lifeplan** subfolder; the repo and deployment are for lifeplan.
 
 ---

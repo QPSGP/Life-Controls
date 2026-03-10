@@ -60,7 +60,8 @@ export default function AdminDocumentsPage() {
         <header className="flex items-center justify-between border-b border-neutral-800 pb-4 mb-6">
           <h1 className="text-2xl font-semibold">Documents (UNIVERSA)</h1>
           <div className="flex items-center gap-4">
-            <Link href="/admin/documents/new" className="rounded bg-emerald-700 px-3 py-1.5 text-sm text-white hover:bg-emerald-600">Add document</Link>
+            <Link href="/admin/documents/new/wizard" className="rounded bg-emerald-700 px-3 py-1.5 text-sm text-white hover:bg-emerald-600">Record new (wizard)</Link>
+            <Link href="/admin/documents/new" className="rounded border border-neutral-600 px-3 py-1.5 text-sm text-neutral-300 hover:bg-neutral-800">Add document</Link>
             <Link href="/admin/documents/reports" className="text-neutral-400 hover:text-white text-sm">Reports &amp; queries</Link>
             <Link href="/admin" className="text-neutral-400 hover:text-white text-sm">← Admin</Link>
           </div>

@@ -85,7 +85,7 @@ export function AdminDashboardClient() {
     <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
       <div className="max-w-4xl mx-auto">
         <header className="flex items-center justify-between border-b border-neutral-800 pb-4 mb-8">
-          <h1 className="text-2xl font-semibold">Sovereign Life Plan — Admin</h1>
+          <h1 className="text-2xl font-semibold">Sovereign Life Control Tool — Admin</h1>
           <div className="flex items-center gap-4">
             <Link href="/admin/invoices" className="text-neutral-400 hover:text-white text-sm">Invoices</Link>
             <Link href="/admin/orders" className="text-neutral-400 hover:text-white text-sm">Orders</Link>
@@ -95,6 +95,7 @@ export function AdminDashboardClient() {
             <Link href="/admin/life-plan" className="text-neutral-400 hover:text-white text-sm">Life Plan</Link>
             <Link href="/admin/reports" className="text-neutral-400 hover:text-white text-sm">Reports</Link>
             <Link href="/admin/documents" className="text-neutral-400 hover:text-white text-sm">Documents</Link>
+            <Link href="/admin/people" className="text-neutral-400 hover:text-white text-sm">People</Link>
             <Link href="/" className="text-neutral-400 hover:text-white text-sm">← Home</Link>
             <a href="/api/auth/admin/logout" className="text-neutral-500 hover:text-white text-sm">Log out</a>
           </div>

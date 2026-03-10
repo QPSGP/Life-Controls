@@ -21,13 +21,36 @@ export default async function AdminNewDocumentPage({
         <form action="/api/universa/documents" method="POST" className="rounded-lg bg-neutral-900 p-4 space-y-3">
           <div>
             <label className="block text-sm text-neutral-400 mb-1">Doc # (required)</label>
-            <input type="text" name="docNumber" required placeholder="e.g. 2024-001" className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />
+            <input
+              type="text"
+              name="docNumber"
+              required
+              placeholder="e.g. 2024-001"
+              className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-neutral-400 mb-1">Document number (alt)</label>
+            <input
+              type="text"
+              name="documentNumberAlt"
+              placeholder="Optional"
+              className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700"
+            />
           </div>
           <div>
             <label className="block text-sm text-neutral-400 mb-1">Document title</label>
-            <input type="text" name="documentTitle" placeholder="Optional" className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700" />
+            <input
+              type="text"
+              name="documentTitle"
+              placeholder="Optional"
+              className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700"
+            />
           </div>
-          <button type="submit" className="rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-600">Create document</button>
+          <p className="text-neutral-500 text-sm">After creating, you can edit all document, property, and party details on the next page.</p>
+          <button type="submit" className="rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-600">
+            Create document
+          </button>
         </form>
       </div>
     </main>

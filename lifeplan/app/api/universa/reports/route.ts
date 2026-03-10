@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/universa/reports — query-style report. query=byDate | byGrantee | byGrantor | full. format=json | csv */
+/** GET /api/universa/reports — query=full | byDate | byGrantee | byGrantor | byTitle | bySigner | property. format=json | csv */
 export async function GET(req: NextRequest) {
   const verified = await verifyAdminCookie();
   if (!verified) {
@@ -18,6 +18,8 @@ export async function GET(req: NextRequest) {
   const recordedFrom = searchParams.get("recordedFrom")?.trim() || undefined;
   const recordedTo = searchParams.get("recordedTo")?.trim() || undefined;
   const nameSearch = searchParams.get("name")?.trim() || undefined;
+  const titleSearch = searchParams.get("title")?.trim() || undefined;
+  const signerSearch = searchParams.get("signer")?.trim() || undefined;
 
   const where: Prisma.UniversaDocumentWhereInput = {};
   if (recordedFrom || recordedTo) {
@@ -33,6 +35,16 @@ export async function GET(req: NextRequest) {
     const nameFilter = { contains: nameSearch, mode: "insensitive" as const };
     if (query === "byGrantee") where.grantees = { some: { name: nameFilter } };
     else where.grantors = { some: { name: nameFilter } };
+  }
+  if (titleSearch && query === "byTitle") {
+    where.documentTitle = { contains: titleSearch, mode: "insensitive" };
+  }
+  if (signerSearch && query === "bySigner") {
+    where.OR = [
+      { signedBy: { contains: signerSearch, mode: "insensitive" } },
+      { signedBy2: { contains: signerSearch, mode: "insensitive" } },
+      { signedBy3: { contains: signerSearch, mode: "insensitive" } },
+    ];
   }
 
   try {
@@ -54,7 +66,15 @@ export async function GET(req: NextRequest) {
       dateSigned: d.dateSigned?.toISOString().slice(0, 10) ?? "",
       considerationAmt: d.considerationAmt ?? "",
       propertyCounty: d.propertyCounty ?? "",
+      lot: d.lot ?? "",
+      block: d.block ?? "",
+      tract: d.tract ?? "",
+      book: d.book ?? "",
+      pages: d.pages ?? "",
+      parcelNumber: d.parcelNumber ?? "",
       propertyAdrs: d.propertyAdrs ?? "",
+      propertyAdrs2: d.propertyAdrs2 ?? "",
+      propertyAdrs3: d.propertyAdrs3 ?? "",
       granteeNames: d.grantees.map((g) => g.name).filter(Boolean).join("; "),
       grantorNames: d.grantors.map((g) => g.name).filter(Boolean).join("; "),
       grantors: d.grantors,
@@ -62,15 +82,19 @@ export async function GET(req: NextRequest) {
     }));
 
     if (format === "csv") {
-      const header = "Doc #,Document Title,Recorded,Date Signed,Consideration,County,Property Address,Grantee Names,Grantor Names\n";
-      const csvRows = rows.map(
-        (r) =>
-          `"${escapeCsv(r.docNumber)}","${escapeCsv(r.documentTitle)}","${r.recordedAt}","${r.dateSigned}","${escapeCsv(String(r.considerationAmt))}","${escapeCsv(r.propertyCounty)}","${escapeCsv(r.propertyAdrs)}","${escapeCsv(r.granteeNames)}","${escapeCsv(r.grantorNames)}"`
+      const isProperty = query === "property";
+      const header = isProperty
+        ? "Doc #,Document Title,Recorded,County,Lot,Block,Tract,Book,Pages,Parcel #,Property Address,Property 2,Property 3,Consideration,Grantee Names,Grantor Names\n"
+        : "Doc #,Document Title,Recorded,Date Signed,Consideration,County,Property Address,Grantee Names,Grantor Names\n";
+      const csvRows = rows.map((r) =>
+        isProperty
+          ? `"${escapeCsv(r.docNumber)}","${escapeCsv(r.documentTitle)}","${r.recordedAt}","${escapeCsv(r.propertyCounty)}","${escapeCsv(r.lot)}","${escapeCsv(r.block)}","${escapeCsv(r.tract)}","${escapeCsv(r.book)}","${escapeCsv(r.pages)}","${escapeCsv(r.parcelNumber)}","${escapeCsv(r.propertyAdrs)}","${escapeCsv(r.propertyAdrs2)}","${escapeCsv(r.propertyAdrs3)}","${escapeCsv(String(r.considerationAmt))}","${escapeCsv(r.granteeNames)}","${escapeCsv(r.grantorNames)}"`
+          : `"${escapeCsv(r.docNumber)}","${escapeCsv(r.documentTitle)}","${r.recordedAt}","${r.dateSigned}","${escapeCsv(String(r.considerationAmt))}","${escapeCsv(r.propertyCounty)}","${escapeCsv(r.propertyAdrs)}","${escapeCsv(r.granteeNames)}","${escapeCsv(r.grantorNames)}"`
       );
       return new NextResponse(header + csvRows.join("\n"), {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
-          "Content-Disposition": 'attachment; filename="universa-documents.csv"',
+          "Content-Disposition": 'attachment; filename="universa-documents' + (isProperty ? "-property" : "") + '.csv"',
         },
       });
     }

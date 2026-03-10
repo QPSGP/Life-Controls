@@ -14,6 +14,7 @@ export async function POST(
   const { id } = await params;
   const formData = await req.formData();
   const get = (k: string) => (formData.get(k) as string)?.trim() || null;
+  const redirectTo = (formData.get("redirectTo") as string)?.trim() || null;
   try {
     await prisma.universaDocumentGrantor.create({
       data: {
@@ -27,9 +28,11 @@ export async function POST(
         comment: get("comment"),
       },
     });
-    return NextResponse.redirect(new URL("/admin/documents/" + id + "/edit", req.nextUrl.origin));
+    const target = redirectTo ? redirectTo.replace("{id}", id) : "/admin/documents/" + id + "/edit";
+    return NextResponse.redirect(new URL(target, req.nextUrl.origin));
   } catch (e) {
     console.error(e);
-    return NextResponse.redirect(new URL("/admin/documents/" + id + "/edit?error=grantor", req.nextUrl.origin));
+    const fallback = redirectTo ? redirectTo.replace("{id}", id) + (redirectTo.includes("?") ? "&" : "?") + "error=grantor" : "/admin/documents/" + id + "/edit?error=grantor";
+    return NextResponse.redirect(new URL(fallback, req.nextUrl.origin));
   }
 }

@@ -1,4 +1,4 @@
-// Sovereign Life Plan — Prisma schema
+// Sovereign Life Control Tool — Prisma schema
 // DB: PostgreSQL (Vercel Postgres / Neon / Supabase)
 
 generator client {

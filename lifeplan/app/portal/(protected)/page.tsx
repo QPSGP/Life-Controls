@@ -39,7 +39,10 @@ export default async function PortalPage(props: { searchParams: Promise<{ update
     <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
       <div className="max-w-2xl mx-auto">
         <header className="flex items-center justify-between border-b border-neutral-800 pb-4 mb-8">
-          <h1 className="text-2xl font-semibold">My account</h1>
+          <div>
+            <h1 className="text-2xl font-semibold">Sovereign Life Control Tool</h1>
+            <p className="text-sm text-neutral-500 mt-0.5">My account</p>
+          </div>
           <a href="/api/auth/member/logout" className="text-neutral-400 hover:text-white text-sm">Sign out</a>
         </header>
 

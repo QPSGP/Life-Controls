@@ -41,8 +41,9 @@ export default async function MemberLoginPage({
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center p-6">
       <div className="w-full max-w-sm rounded-lg bg-neutral-900 p-6 border border-neutral-800">
+        <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 mb-2">Sovereign Life Control Tool</p>
         <h1 className="text-xl font-semibold mb-2">Member portal</h1>
-        <p className="text-sm text-neutral-400 mb-4">Sign in to view your subscription and account.</p>
+        <p className="text-sm text-neutral-400 mb-4">Sign in to view your plan, schedule, and account.</p>
         {error === "invalid" && <p className="text-amber-500 text-sm mb-2">Invalid email or password.</p>}
         {error === "missing" && <p className="text-amber-500 text-sm mb-2">Email and password required.</p>}
         {error === "server" && (

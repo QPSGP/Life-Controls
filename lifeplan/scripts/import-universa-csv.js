@@ -156,6 +156,37 @@ function parseDate(s) {
   return isNaN(d.getTime()) ? null : d;
 }
 
+function normPerson(row) {
+  const get = (...keys) => {
+    for (const k of keys) {
+      const v = row[k];
+      if (v != null && String(v).trim() !== "") return String(v).trim();
+    }
+    return null;
+  };
+  const personalId = get("Personal ID", "personalId", "Personal ID NUM");
+  return {
+    personalId: personalId || null,
+    lastName: get("Last Name", "lastName"),
+    firstName: get("First Name", "firstName"),
+    middle: get("Middle", "middle"),
+  };
+}
+
+function normPersonAlias(row, personId) {
+  const get = (...keys) => {
+    for (const k of keys) {
+      const v = row[k];
+      if (v != null && String(v).trim() !== "") return String(v).trim();
+    }
+    return null;
+  };
+  return {
+    personId,
+    aliasIdNum: get("Alias ID NUM", "aliasIdNum", "Alias ID") || null,
+  };
+}
+
 async function main() {
   if (!fs.existsSync(DATA_DIR)) {
     console.log("Data dir not found:", DATA_DIR);
@@ -223,6 +254,52 @@ async function main() {
       count++;
     }
     console.log("Created", count, "grantees.");
+  }
+
+  // Optional: persons and aliases (PER_ID, PERALIAS)
+  const personPath = ["persons.csv", "PER_ID.csv", "per_id.csv"].find((f) =>
+    fs.existsSync(path.join(DATA_DIR, f))
+  );
+  const personalIdToId = {};
+  if (personPath) {
+    const content = fs.readFileSync(path.join(DATA_DIR, personPath), "utf8");
+    const { rows } = parseCSV(content);
+    const persons = rows.map(normPerson).filter((p) => p.lastName || p.firstName || p.personalId);
+    for (const p of persons) {
+      try {
+        if (p.personalId) {
+          const existing = await prisma.universaPerson.findUnique({ where: { personalId: p.personalId } });
+          if (existing) {
+            personalIdToId[p.personalId] = existing.id;
+            continue;
+          }
+        }
+        const created = await prisma.universaPerson.create({ data: p });
+        if (created.personalId) personalIdToId[created.personalId] = created.id;
+      } catch (err) {
+        // skip duplicate or other error
+      }
+    }
+    console.log("Imported", Object.keys(personalIdToId).length, "persons (by personalId); total rows", persons.length);
+  }
+  const aliasPath = personPath && ["person_aliases.csv", "PERALIAS.csv", "peralias.csv"].find((f) =>
+    fs.existsSync(path.join(DATA_DIR, f))
+  );
+  if (aliasPath && Object.keys(personalIdToId).length > 0) {
+    const aliasContent = fs.readFileSync(path.join(DATA_DIR, aliasPath), "utf8");
+    const { rows: aliasRows } = parseCSV(aliasContent);
+    let aliasCount = 0;
+    for (const row of aliasRows) {
+      const personalId = (row["Personal ID"] || row["Personal ID NUM"] || row.personalId || "").trim();
+      const personId = personalIdToId[personalId];
+      if (!personId) continue;
+      const payload = normPersonAlias(row, personId);
+      try {
+        await prisma.universaPersonAlias.create({ data: payload });
+        aliasCount++;
+      } catch (err) {}
+    }
+    console.log("Created", aliasCount, "person aliases.");
   }
 
   console.log("UNIVERSA import done.");

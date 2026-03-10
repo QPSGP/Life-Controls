@@ -68,23 +68,38 @@ export async function GET(req: NextRequest) {
   }
 }
 
-/** POST /api/universa/documents — create document. Body: docNumber (required), documentTitle (optional) */
+/** POST /api/universa/documents — create document. Body: docNumber (required), documentTitle, documentNumberAlt, recordedAt, recReqBy (optional). redirectTo for wizard. */
 export async function POST(req: NextRequest) {
   const verified = await verifyAdminCookie();
   if (!verified) return NextResponse.redirect(new URL("/admin/login", req.nextUrl.origin));
   const formData = await req.formData();
   const docNumber = (formData.get("docNumber") as string)?.trim();
-  if (!docNumber) return NextResponse.redirect(new URL("/admin/documents/new?error=missing", req.nextUrl.origin));
+  if (!docNumber) {
+    const wizard = formData.get("wizard") === "1";
+    return NextResponse.redirect(new URL(wizard ? "/admin/documents/new/wizard?error=missing" : "/admin/documents/new?error=missing", req.nextUrl.origin));
+  }
   const documentTitle = (formData.get("documentTitle") as string)?.trim() || null;
+  const documentNumberAlt = (formData.get("documentNumberAlt") as string)?.trim() || null;
+  const redirectTo = (formData.get("redirectTo") as string)?.trim() || null;
+  const getDate = (k: string) => {
+    const s = (formData.get(k) as string)?.trim();
+    if (!s) return null;
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? null : d;
+  };
+  const recordedAt = getDate("recordedAt");
+  const recReqBy = (formData.get("recReqBy") as string)?.trim() || null;
   try {
     const doc = await prisma.universaDocument.create({
-      data: { docNumber, documentTitle },
+      data: { docNumber, documentTitle, documentNumberAlt, recordedAt, recReqBy },
     });
-    return NextResponse.redirect(new URL("/admin/documents/" + doc.id + "/edit", req.nextUrl.origin));
+    const target = redirectTo || "/admin/documents/" + doc.id + "/edit";
+    return NextResponse.redirect(new URL(target.replace("{id}", doc.id), req.nextUrl.origin));
   } catch (e: unknown) {
     const msg = e && typeof e === "object" && "code" in e && (e as { code: string }).code === "P2002"
       ? "duplicate"
       : "create";
-    return NextResponse.redirect(new URL("/admin/documents/new?error=" + msg, req.nextUrl.origin));
+    const wizard = formData.get("wizard") === "1";
+    return NextResponse.redirect(new URL(wizard ? "/admin/documents/new/wizard?error=" + msg : "/admin/documents/new?error=" + msg, req.nextUrl.origin));
   }
 }
