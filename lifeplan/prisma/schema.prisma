@@ -146,6 +146,8 @@ model Member {
   communications   Communication[]
   subjectBusinesses SubjectBusiness[]  // life plans linked to this member (optional)
   expenditures     Expenditure[]
+  contacts        Contact[]
+  companies       Company[]
 
   @@map("members")
 }
@@ -294,16 +296,87 @@ model MemberPlanTask {
 
 // ----- Communications (calls, mailouts) -----
 model Communication {
-  id        String   @id @default(cuid())
-  memberId  String
-  type      String   // "call" | "mailout" | "email"
-  subject   String?
-  notes     String?
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  memberId   String
+  type       String   // "call" | "mailout" | "email"
+  subject    String?
+  notes      String?
+  contactId  String?  // optional: link to Contact for timeline
+  companyId  String?  // optional: link to Company
+  createdAt  DateTime @default(now())
 
-  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  member   Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  contact  Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  company  Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
   @@map("communications")
+}
+
+// ----- Contacts (HubSpot-style: people profiles, private/public, business/personal) -----
+model Contact {
+  id            String   @id @default(cuid())
+  memberId      String
+  visibility    String   @default("private")  // "private" | "public"
+  category      String   @default("business") // "business" | "personal"
+  firstName     String?
+  lastName      String?
+  displayName   String?
+  email         String?
+  emailSecondary String?
+  phone         String?
+  mobile        String?
+  fax           String?
+  jobTitle      String?
+  companyName   String?  // free text; use companyId for linked Company
+  companyId     String?  // optional link to Company
+  street        String?
+  city          String?
+  state         String?
+  zip           String?
+  country       String?
+  notes         String?  @db.Text
+  howToEngage   String?  @db.Text // preferences, best time, etc.
+  keyFacts      String?  @db.Text
+  tags          String?  // comma-separated or JSON; e.g. VIP, Prospect
+  source        String?  // Outlook, RingCentral, Manual, Import
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  member     Member         @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  company    Company?       @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  communications Communication[]
+
+  @@map("contacts")
+}
+
+// ----- Companies (HubSpot-style: organization profiles, private/public, business/personal) -----
+model Company {
+  id          String   @id @default(cuid())
+  memberId    String
+  visibility  String   @default("private")  // "private" | "public"
+  category    String   @default("business") // "business" | "personal"
+  name        String?
+  website     String?
+  phone       String?
+  street      String?
+  city        String?
+  state       String?
+  zip         String?
+  country     String?
+  industry    String?
+  size        String?  // e.g. SMB, Enterprise
+  notes       String?  @db.Text
+  keyPeople   String?  @db.Text
+  tags        String?
+  source      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  member         Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  contacts       Contact[]
+  communications Communication[]
+
+  @@map("companies")
 }
 
 // ----- Expenditures (legacy EXPEND) -----
