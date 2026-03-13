@@ -20,7 +20,7 @@
 | Reports (Life Plan, Live PM, CSV) | ✅ Done | Admin → Reports |
 | Member portal (login, plan, schedule, profile) | ✅ Done | /portal |
 | Auth (admin + member login/logout) | ✅ Done | Server actions + cookie |
-| Payments (Stripe/crypto) | ⚠️ Partial | Webhook routes exist; tie-in to subscriptions/invoices may need polish |
+| Payments (Stripe/crypto) | ✅ Done | Webhook: invoice.paid → Payment + Invoice status; customer.subscription.deleted → Subscription canceled; invoice.payment_failed → past_due; checkout.session.completed → Payment + stripeSubscriptionId |
 | Subscription signup / self-serve billing | ❓ Optional | If you want members to sign up and pay without admin |
 
 ---
@@ -37,12 +37,12 @@
 | **Reports** (full, byDate, byTitle, bySigner, byGrantee, byGrantor, property) | ✅ Done | Admin → Documents → Reports & queries; CSV |
 | **Import** (CSV → documents, grantors, grantees) | ✅ Done | `scripts/import-universa-csv.js` |
 | **Persons & aliases UI** (list, add, edit, delete Person + aliases) | ✅ Done | Admin → People; edit person + aliases |
-| **Link grantor/grantee to Person** | ❌ Not done | Optional dropdown when desired |
+| **Link grantor/grantee to Person** | ✅ Done | Optional “Link to person” dropdown on document edit (grantors & grantees); universaPersonId on both models |
 | **Person/alias CSV import** | ✅ Done | persons.csv / PER_ID.csv; person_aliases.csv / PERALIAS.csv (see UNIVERSA_IMPORT.md) |
 | **BIZLEGAL.VAL validation** | ❌ Not done | Only if you recover rules (binary file) |
 | **CNTYCLRK** (county clerk–specific) | ❌ Not done | Legacy folder empty; add if you get tables/forms |
 | **Document workflows** (duplicate, clone grantors, templates) | ✅ Done | Duplicate document (copy doc + grantors + grantees) |
-| **Portal: member view of documents** | ❌ Not done | Optional: e.g. read-only docs linked to member |
+| **Portal: member view of documents** | ✅ Done | Admin assigns document to member (memberId); member sees read-only list + detail at /portal/documents |
 
 ---
 
@@ -50,7 +50,7 @@
 
 | Piece | Status | Notes |
 |-------|--------|--------|
-| Form validation (required fields, dates) | ⚠️ Partial | Doc # required on create; add more where it matters |
+| Form validation (required fields, dates) | ✅ Done | Document: invalid date → error; Invoice: invalid due date → error; Grantor/grantee add: name or person link required; UI error messages and hints |
 | UNIVERSA_IMPORT.md (CSV column names) | ✅ Done | docs/UNIVERSA_IMPORT.md |
 | Run entire business from one app | ✅ Done | Member + business (documents, people, reports, wizard, duplicate); optional portal docs view and BIZLEGAL/CNTYCLRK if needed later |
 

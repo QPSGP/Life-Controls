@@ -12,6 +12,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.redirect(new URL("/admin/invoices?error=missing", origin));
     }
     const dueDate = new Date(dueDateStr);
+    if (isNaN(dueDate.getTime())) {
+      return NextResponse.redirect(new URL("/admin/invoices?error=invalid_date", origin));
+    }
     const count = await prisma.invoice.count({ where: { memberId } });
     const invoiceNumber = `INV-${Date.now().toString(36).toUpperCase()}-${count + 1}`;
     await prisma.invoice.create({

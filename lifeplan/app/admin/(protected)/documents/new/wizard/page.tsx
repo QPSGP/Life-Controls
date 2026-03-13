@@ -24,6 +24,9 @@ export default async function NewDocumentWizardPage({
         {error === "missing" && (
           <p className="text-amber-500 text-sm mb-4">Doc # is required.</p>
         )}
+        {error === "invalid_date" && (
+          <p className="text-amber-500 text-sm mb-4">Invalid date. Use a valid date (e.g. YYYY-MM-DD).</p>
+        )}
         {error === "duplicate" && (
           <p className="text-amber-500 text-sm mb-4">A document with that Doc # already exists.</p>
         )}

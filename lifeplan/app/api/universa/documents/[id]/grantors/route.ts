@@ -15,10 +15,17 @@ export async function POST(
   const formData = await req.formData();
   const get = (k: string) => (formData.get(k) as string)?.trim() || null;
   const redirectTo = (formData.get("redirectTo") as string)?.trim() || null;
+  const personId = get("universaPersonId");
+  const name = get("name");
+  if (!name && !personId) {
+    const target = redirectTo ? redirectTo.replace("{id}", id) : "/admin/documents/" + id + "/edit";
+    return NextResponse.redirect(new URL(target + (target.includes("?") ? "&" : "?") + "error=grantor", req.nextUrl.origin));
+  }
   try {
     await prisma.universaDocumentGrantor.create({
       data: {
         documentId: id,
+        universaPersonId: personId || undefined,
         grantorNumber: get("grantorNumber"),
         name: get("name"),
         address: get("address"),

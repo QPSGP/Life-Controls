@@ -60,6 +60,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       await prisma.universaDocumentGrantor.create({
         data: {
           documentId: created.id,
+          universaPersonId: g.universaPersonId,
           grantorNumber: g.grantorNumber,
           name: g.name,
           address: g.address,
@@ -74,6 +75,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       await prisma.universaDocumentGrantee.create({
         data: {
           documentId: created.id,
+          universaPersonId: g.universaPersonId,
           granteeNumber: g.granteeNumber,
           name: g.name,
           address: g.address,

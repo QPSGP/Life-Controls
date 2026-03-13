@@ -40,17 +40,28 @@ export async function POST(
   const { id } = await params;
   const formData = await req.formData();
   const get = (k: string) => (formData.get(k) as string)?.trim() || null;
+  const memberId = get("memberId");
   const getDate = (k: string) => {
     const s = get(k);
     if (!s) return null;
     const d = new Date(s);
     return isNaN(d.getTime()) ? null : d;
   };
+  // Validate dates: if user submitted a non-empty value, it must parse as a valid date
+  const rawRecordedAt = get("recordedAt");
+  const rawDateSigned = get("dateSigned");
+  const rawNotarizationDate = get("notarizationDate");
+  if ((rawRecordedAt && !getDate("recordedAt")) || (rawDateSigned && !getDate("dateSigned")) || (rawNotarizationDate && !getDate("notarizationDate"))) {
+    const redirectTo = (formData.get("redirectTo") as string)?.trim() || null;
+    const base = redirectTo ? redirectTo.replace("{id}", id) : "/admin/documents/" + id + "/edit";
+    return NextResponse.redirect(new URL(base + (base.includes("?") ? "&" : "?") + "error=invalid_date", req.nextUrl.origin));
+  }
   const wizardStep = get("wizardStep");
   const redirectTo = (formData.get("redirectTo") as string)?.trim() || null;
   const defaultRedirect = "/admin/documents/" + id + "/edit";
 
   const fullData = {
+    memberId: memberId || null,
     documentTitle: get("documentTitle"),
     documentNumberAlt: get("documentNumberAlt"),
     recordedAt: getDate("recordedAt"),

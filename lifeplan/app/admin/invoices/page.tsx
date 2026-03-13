@@ -63,6 +63,7 @@ export default async function AdminInvoicesPage(props: {
           </div>
         )}
         {error === "missing" && <p className="text-amber-500 text-sm mb-4">Member, amount, and due date are required.</p>}
+        {error === "invalid_date" && <p className="text-amber-500 text-sm mb-4">Please enter a valid due date.</p>}
         {error === "amount" && <p className="text-amber-500 text-sm mb-4">Payment amount must be greater than 0.</p>}
         {error === "create" && <p className="text-amber-500 text-sm mb-4">Failed to create invoice.</p>}
         {error === "payment" && <p className="text-amber-500 text-sm mb-4">Failed to record payment.</p>}

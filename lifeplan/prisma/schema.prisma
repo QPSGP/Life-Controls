@@ -146,8 +146,9 @@ model Member {
   communications   Communication[]
   subjectBusinesses SubjectBusiness[]  // life plans linked to this member (optional)
   expenditures     Expenditure[]
-  contacts        Contact[]
-  companies       Company[]
+  contacts         Contact[]
+  companies        Company[]
+  universaDocuments UniversaDocument[]   // documents visible to this member in portal (read-only)
 
   @@map("members")
 }
@@ -181,15 +182,16 @@ model SubscriptionPlan {
 
 // ----- Per-member subscription -----
 model Subscription {
-  id                String   @id @default(cuid())
-  memberId          String
-  subscriptionPlanId String
-  status            String   // trial | active | past_due | canceled
-  startedAt         DateTime @default(now())
-  currentPeriodEnd  DateTime
-  canceledAt        DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                  String    @id @default(cuid())
+  memberId            String
+  subscriptionPlanId  String
+  stripeSubscriptionId String?  @unique // Stripe subscription id for webhook matching
+  status              String    // trial | active | past_due | canceled
+  startedAt           DateTime  @default(now())
+  currentPeriodEnd    DateTime
+  canceledAt          DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   member   Member          @relation(fields: [memberId], references: [id], onDelete: Cascade)
   plan     SubscriptionPlan @relation(fields: [subscriptionPlanId], references: [id])
@@ -414,6 +416,7 @@ model Chore {
 model UniversaDocument {
   id                  String   @id @default(cuid())
   docNumber            String   @unique // Doc. #
+  memberId             String?  // optional: member can see this doc in portal (read-only)
   documentNumberAlt    String?  // Document Number (alternate)
   recordedAt           DateTime?
   documentTitle        String?
@@ -450,60 +453,67 @@ model UniversaDocument {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
-  grantors  UniversaDocumentGrantor[]
-  grantees  UniversaDocumentGrantee[]
+  member   Member?                 @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  grantors UniversaDocumentGrantor[]
+  grantees UniversaDocumentGrantee[]
 
   @@map("universa_documents")
 }
 
 model UniversaDocumentGrantor {
-  id             String   @id @default(cuid())
-  documentId      String
-  grantorNumber  String?  // Grantor#
-  name           String?
-  address        String?  @db.Text
-  address2        String?
-  address3        String?
-  percentShare   String?  // %
-  comment        String?  @db.Text
-  sortOrder      Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id               String   @id @default(cuid())
+  documentId       String
+  universaPersonId String?  // optional link to UniversaPerson
+  grantorNumber    String?  // Grantor#
+  name             String?
+  address          String?  @db.Text
+  address2         String?
+  address3         String?
+  percentShare     String?  // %
+  comment          String?  @db.Text
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   document UniversaDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  person   UniversaPerson?  @relation(fields: [universaPersonId], references: [id], onDelete: SetNull)
 
   @@map("universa_document_grantors")
 }
 
 model UniversaDocumentGrantee {
-  id             String   @id @default(cuid())
-  documentId      String
-  granteeNumber  String?  // Grantee #
-  name           String?
-  address        String?  @db.Text
-  address2        String?
-  address3        String?
-  percentShare   String?  // %
-  comment        String?  @db.Text
-  sortOrder      Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id               String   @id @default(cuid())
+  documentId       String
+  universaPersonId String?  // optional link to UniversaPerson
+  granteeNumber    String?  // Grantee #
+  name             String?
+  address          String?  @db.Text
+  address2         String?
+  address3         String?
+  percentShare     String?  // %
+  comment          String?  @db.Text
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   document UniversaDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  person   UniversaPerson?  @relation(fields: [universaPersonId], references: [id], onDelete: SetNull)
 
   @@map("universa_document_grantees")
 }
 
 model UniversaPerson {
   id          String   @id @default(cuid())
-  personalId   String?  @unique // Personal ID (legacy)
+  personalId  String?  @unique // Personal ID (legacy)
   lastName    String?
   firstName   String?
   middle      String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  aliases UniversaPersonAlias[]
+  aliases   UniversaPersonAlias[]
+  grantors  UniversaDocumentGrantor[]
+  grantees  UniversaDocumentGrantee[]
 
   @@map("universa_persons")
 }

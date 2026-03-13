@@ -80,11 +80,24 @@ export default async function AdminDocumentEditPage({
 }) {
   const { id } = await params;
   const { error } = await searchParams;
-  const doc = await prisma.universaDocument.findUnique({
-    where: { id },
-    include: { grantors: { orderBy: { sortOrder: "asc" } }, grantees: { orderBy: { sortOrder: "asc" } } },
-  });
+  const [doc, persons, members] = await Promise.all([
+    prisma.universaDocument.findUnique({
+      where: { id },
+      include: {
+        grantors: { orderBy: { sortOrder: "asc" }, include: { person: { select: { id: true, personalId: true, lastName: true, firstName: true } } } },
+        grantees: { orderBy: { sortOrder: "asc" }, include: { person: { select: { id: true, personalId: true, lastName: true, firstName: true } } } },
+      },
+    }),
+    prisma.universaPerson.findMany({ orderBy: [{ lastName: "asc" }, { firstName: "asc" }], select: { id: true, personalId: true, lastName: true, firstName: true, middle: true } }),
+    prisma.member.findMany({ orderBy: [{ lastName: "asc" }, { firstName: "asc" }, { email: "asc" }], select: { id: true, email: true, firstName: true, lastName: true } }),
+  ]);
   if (!doc) notFound();
+
+  function personLabel(p: { personalId: string | null; lastName: string | null; firstName: string | null; middle?: string | null }) {
+    const parts = [p.lastName, p.firstName, p.middle].filter(Boolean);
+    const name = parts.length ? parts.join(", ") : "—";
+    return p.personalId ? `${name} (${p.personalId})` : name;
+  }
 
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
@@ -107,10 +120,11 @@ export default async function AdminDocumentEditPage({
         {error && (
           <p className="text-amber-500 text-sm mb-4">
             {error === "update" && "Could not update document."}
-            {error === "grantor" && "Could not add grantor."}
-            {error === "grantee" && "Could not add grantee."}
+            {error === "grantor" && "Could not add grantor. Enter a name or link to a person."}
+            {error === "grantee" && "Could not add grantee. Enter a name or link to a person."}
             {error === "duplicate" && "That Doc # is already in use."}
             {error === "copy" && "Could not duplicate document."}
+            {error === "invalid_date" && "Invalid date. Use a valid date (e.g. YYYY-MM-DD)."}
           </p>
         )}
 
@@ -124,6 +138,18 @@ export default async function AdminDocumentEditPage({
               Doc #: <span className="font-mono text-neutral-300">{doc.docNumber}</span> (cannot
               change)
             </p>
+            <div>
+              <label className="block text-sm text-neutral-400 mb-1">Portal member (read-only in portal)</label>
+              <select name="memberId" defaultValue={doc.memberId ?? ""} className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700 focus:border-neutral-500 focus:outline-none">
+                <option value="">None</option>
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {[m.firstName, m.lastName].filter(Boolean).join(" ") || m.email} ({m.email})
+                  </option>
+                ))}
+              </select>
+              <p className="text-neutral-500 text-xs mt-0.5">If set, this member can view this document in the portal (read-only).</p>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <FormField
                 label="Document number (alt)"
@@ -241,6 +267,15 @@ export default async function AdminDocumentEditPage({
               {doc.grantors.map((g) => (
                 <li key={g.id} className="rounded-lg bg-neutral-900 p-4 border border-neutral-800">
                   <form action={"/api/universa/grantors/" + g.id} method="POST" className="space-y-3">
+                    <div>
+                      <label className="block text-sm text-neutral-400 mb-1">Link to person</label>
+                      <select name="universaPersonId" defaultValue={g.person?.id ?? ""} className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700 focus:border-neutral-500 focus:outline-none">
+                        <option value="">None</option>
+                        {persons.map((p) => (
+                          <option key={p.id} value={p.id}>{personLabel(p)}</option>
+                        ))}
+                      </select>
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <FormField label="Grantor #" name="grantorNumber" defaultValue={g.grantorNumber} />
                       <FormField label="Name" name="name" defaultValue={g.name} />
@@ -276,10 +311,20 @@ export default async function AdminDocumentEditPage({
           <div className="rounded-lg bg-neutral-900 p-4 border border-neutral-800 border-dashed">
             <p className="text-neutral-500 text-sm mb-3">Add grantor</p>
             <form action={"/api/universa/documents/" + id + "/grantors"} method="POST" className="space-y-3">
+              <div>
+                <label className="block text-sm text-neutral-400 mb-1">Link to person</label>
+                <select name="universaPersonId" className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700 focus:border-neutral-500 focus:outline-none">
+                  <option value="">None</option>
+                  {persons.map((p) => (
+                    <option key={p.id} value={p.id}>{personLabel(p)}</option>
+                  ))}
+                </select>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <FormField label="Grantor #" name="grantorNumber" placeholder="Optional" />
-                <FormField label="Name" name="name" />
+                <FormField label="Name" name="name" placeholder="Required if not linking to a person" />
               </div>
+              <p className="text-neutral-500 text-xs">Provide either a name or link to a person above.</p>
               <FormField label="Address" name="address" />
               <FormField label="Address 2" name="address2" />
               <FormField label="Address 3" name="address3" />
@@ -306,6 +351,15 @@ export default async function AdminDocumentEditPage({
               {doc.grantees.map((g) => (
                 <li key={g.id} className="rounded-lg bg-neutral-900 p-4 border border-neutral-800">
                   <form action={"/api/universa/grantees/" + g.id} method="POST" className="space-y-3">
+                    <div>
+                      <label className="block text-sm text-neutral-400 mb-1">Link to person</label>
+                      <select name="universaPersonId" defaultValue={g.person?.id ?? ""} className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700 focus:border-neutral-500 focus:outline-none">
+                        <option value="">None</option>
+                        {persons.map((p) => (
+                          <option key={p.id} value={p.id}>{personLabel(p)}</option>
+                        ))}
+                      </select>
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <FormField label="Grantee #" name="granteeNumber" defaultValue={g.granteeNumber} />
                       <FormField label="Name" name="name" defaultValue={g.name} />
@@ -341,10 +395,20 @@ export default async function AdminDocumentEditPage({
           <div className="rounded-lg bg-neutral-900 p-4 border border-neutral-800 border-dashed">
             <p className="text-neutral-500 text-sm mb-3">Add grantee</p>
             <form action={"/api/universa/documents/" + id + "/grantees"} method="POST" className="space-y-3">
+              <div>
+                <label className="block text-sm text-neutral-400 mb-1">Link to person</label>
+                <select name="universaPersonId" className="w-full rounded bg-neutral-800 px-3 py-2 text-white border border-neutral-700 focus:border-neutral-500 focus:outline-none">
+                  <option value="">None</option>
+                  {persons.map((p) => (
+                    <option key={p.id} value={p.id}>{personLabel(p)}</option>
+                  ))}
+                </select>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <FormField label="Grantee #" name="granteeNumber" placeholder="Optional" />
-                <FormField label="Name" name="name" />
+                <FormField label="Name" name="name" placeholder="Required if not linking to a person" />
               </div>
+              <p className="text-neutral-500 text-xs">Provide either a name or link to a person above.</p>
               <FormField label="Address" name="address" />
               <FormField label="Address 2" name="address2" />
               <FormField label="Address 3" name="address3" />

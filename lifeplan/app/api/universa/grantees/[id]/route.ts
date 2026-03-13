@@ -14,10 +14,12 @@ export async function POST(
   const { id } = await params;
   const formData = await req.formData();
   const get = (k: string) => (formData.get(k) as string)?.trim() || null;
+  const personId = get("universaPersonId");
   try {
     const g = await prisma.universaDocumentGrantee.update({
       where: { id },
       data: {
+        universaPersonId: personId || null,
         granteeNumber: get("granteeNumber"),
         name: get("name"),
         address: get("address"),

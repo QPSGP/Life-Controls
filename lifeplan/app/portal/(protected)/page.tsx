@@ -12,7 +12,7 @@ export default async function PortalPage(props: { searchParams: Promise<{ update
     ? await (props.searchParams as Promise<{ updated?: string; error?: string }>)
     : (props.searchParams as { updated?: string; error?: string });
 
-  const [member, subscriptions, invoices, subjectBusinesses] = await Promise.all([
+  const [member, subscriptions, invoices, subjectBusinesses, documentCount] = await Promise.all([
     prisma.member.findUniqueOrThrow({
       where: { id: memberId },
       include: { categories: { select: { category: true } } },
@@ -33,6 +33,7 @@ export default async function PortalPage(props: { searchParams: Promise<{ update
       orderBy: { sortOrder: "asc" },
       select: { id: true, name: true },
     }),
+    prisma.universaDocument.count({ where: { memberId } }),
   ]);
 
   return (
@@ -93,6 +94,14 @@ export default async function PortalPage(props: { searchParams: Promise<{ update
             <h2 className="text-lg font-medium text-neutral-300 mb-3">My plan</h2>
             <p className="text-neutral-500 text-sm mb-2">You have a life plan linked to your account.</p>
             <Link href="/portal/plan" className="inline-block rounded bg-neutral-800 px-4 py-2 text-sm text-white hover:bg-neutral-700">View my plan →</Link>
+          </section>
+        )}
+
+        {documentCount > 0 && (
+          <section className="mb-8">
+            <h2 className="text-lg font-medium text-neutral-300 mb-3">My documents</h2>
+            <p className="text-neutral-500 text-sm mb-2">View documents shared with you (read-only).</p>
+            <Link href="/portal/documents" className="inline-block rounded bg-neutral-800 px-4 py-2 text-sm text-white hover:bg-neutral-700">View my documents ({documentCount}) →</Link>
           </section>
         )}
 

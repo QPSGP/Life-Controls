@@ -88,6 +88,11 @@ export async function POST(req: NextRequest) {
     return isNaN(d.getTime()) ? null : d;
   };
   const recordedAt = getDate("recordedAt");
+  const rawRecordedAt = (formData.get("recordedAt") as string)?.trim();
+  if (rawRecordedAt && !recordedAt) {
+    const wizard = formData.get("wizard") === "1";
+    return NextResponse.redirect(new URL(wizard ? "/admin/documents/new/wizard?error=invalid_date" : "/admin/documents/new?error=invalid_date", req.nextUrl.origin));
+  }
   const recReqBy = (formData.get("recReqBy") as string)?.trim() || null;
   try {
     const doc = await prisma.universaDocument.create({

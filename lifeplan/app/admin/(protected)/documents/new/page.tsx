@@ -16,6 +16,7 @@ export default async function AdminNewDocumentPage({
           <h1 className="text-2xl font-semibold mt-2">Add document</h1>
         </header>
         {error === "missing" && <p className="text-amber-500 text-sm mb-4">Doc # is required.</p>}
+        {error === "invalid_date" && <p className="text-amber-500 text-sm mb-4">Invalid date. Use a valid date (e.g. YYYY-MM-DD).</p>}
         {error === "duplicate" && <p className="text-amber-500 text-sm mb-4">A document with that Doc # already exists.</p>}
         {error === "create" && <p className="text-amber-500 text-sm mb-4">Could not create document.</p>}
         <form action="/api/universa/documents" method="POST" className="rounded-lg bg-neutral-900 p-4 space-y-3">
