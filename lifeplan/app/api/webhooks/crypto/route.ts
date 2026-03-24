@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/db";
+import { verifyNowPaymentsIpnSignature } from "@/lib/nowpayments-ipn";
 
-// Crypto payment webhooks.
-// Coinbase Commerce: set COINBASE_COMMERCE_WEBHOOK_SECRET (shared secret from Commerce dashboard).
-// When creating a charge, set metadata: { invoiceId: "<our Invoice id>", amountCents: "19900" } (amountCents optional if pricing.local is USD).
+// Crypto payment webhooks (same URL, different providers).
+//
+// Coinbase Commerce (default if no NOWPayments signature):
+//   COINBASE_COMMERCE_WEBHOOK_SECRET; metadata: invoiceId, optional amountCents.
+//
+// NOWPayments:
+//   NOWPAYMENTS_IPN_SECRET from Dashboard → Payment settings → IPN secret.
+//   Callback URL: https://your-domain/api/webhooks/crypto  (header x-provider: nowpayments optional if x-nowpayments-sig is sent).
+//   When creating a payment, set order_id to our Invoice id (same string as in Admin → Invoices).
+//   price_currency "usd" recommended so price_amount maps to invoice balance.
 
 function timingSafeEqualHex(a: string, b: string): boolean {
   try {
@@ -85,9 +93,106 @@ async function applyCoinbaseChargeConfirmed(data: ChargeData) {
   }
 }
 
+type NowPaymentsIpnBody = {
+  payment_id?: number | string;
+  payment_status?: string;
+  order_id?: string;
+  price_amount?: number | string;
+  price_currency?: string;
+  pay_currency?: string;
+  actually_paid?: number | string;
+};
+
+function resolveNowPaymentsProvider(req: NextRequest): "nowpayments" | "coinbase_commerce" {
+  const explicit = req.headers.get("x-provider")?.toLowerCase().trim();
+  if (explicit === "nowpayments") return "nowpayments";
+  if (explicit === "coinbase_commerce") return "coinbase_commerce";
+  const npSig =
+    req.headers.get("x-nowpayments-sig") ?? req.headers.get("X-NOWPayments-Sig");
+  if (npSig) return "nowpayments";
+  return "coinbase_commerce";
+}
+
+async function applyNowPaymentsFinished(body: NowPaymentsIpnBody) {
+  const paymentId = body.payment_id;
+  if (paymentId == null) {
+    console.warn("NOWPayments IPN: missing payment_id");
+    return;
+  }
+  const invoiceId = body.order_id?.trim();
+  if (!invoiceId) {
+    console.warn("NOWPayments IPN: missing order_id (set order_id to Invoice id when creating payment)");
+    return;
+  }
+  const status = (body.payment_status ?? "").toLowerCase();
+  if (status !== "finished") return;
+
+  const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
+  if (!invoice) {
+    console.warn("NOWPayments IPN: invoice not found for order_id", invoiceId);
+    return;
+  }
+
+  let amountCents = 0;
+  const cur = (body.price_currency ?? "usd").toLowerCase();
+  if (cur === "usd" && body.price_amount != null) {
+    const n = Number(body.price_amount);
+    if (!isNaN(n)) amountCents = Math.round(n * 100);
+  }
+  if (amountCents <= 0) amountCents = invoice.amountCents;
+
+  const providerPaymentId = `nowpayments_${paymentId}`;
+  const existing = await prisma.payment.findUnique({ where: { providerPaymentId } });
+  if (existing) return;
+
+  await prisma.payment.create({
+    data: {
+      invoiceId,
+      amountCents,
+      currencyType: "crypto",
+      currencyCode: (body.pay_currency ?? body.price_currency ?? "USD").toUpperCase(),
+      paymentProvider: "nowpayments",
+      providerPaymentId,
+    },
+  });
+  const total = await prisma.payment.aggregate({ where: { invoiceId }, _sum: { amountCents: true } });
+  const paid = total._sum.amountCents ?? 0;
+  if (paid >= invoice.amountCents) {
+    await prisma.invoice.update({ where: { id: invoiceId }, data: { status: "paid" } });
+  }
+}
+
 export async function POST(req: NextRequest) {
   const rawBody = await req.text();
-  const provider = (req.headers.get("x-provider") ?? "coinbase_commerce").toLowerCase();
+  const provider = resolveNowPaymentsProvider(req);
+
+  if (provider === "nowpayments") {
+    const secret = process.env.NOWPAYMENTS_IPN_SECRET;
+    if (!secret) {
+      return NextResponse.json(
+        { error: "NOWPayments IPN secret not configured (NOWPAYMENTS_IPN_SECRET)" },
+        { status: 503 }
+      );
+    }
+    const sig =
+      req.headers.get("x-nowpayments-sig") ?? req.headers.get("X-NOWPayments-Sig");
+    let body: unknown;
+    try {
+      body = JSON.parse(rawBody) as unknown;
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+    if (!verifyNowPaymentsIpnSignature(body, secret, sig)) {
+      return NextResponse.json({ error: "Invalid NOWPayments IPN signature" }, { status: 400 });
+    }
+    try {
+      await applyNowPaymentsFinished(body as NowPaymentsIpnBody);
+    } catch (e) {
+      console.error("NOWPayments IPN handler error:", e);
+      return NextResponse.json({ error: "Handler failed" }, { status: 500 });
+    }
+    return NextResponse.json({ received: true });
+  }
 
   if (provider === "coinbase_commerce") {
     const secret = process.env.COINBASE_COMMERCE_WEBHOOK_SECRET;
@@ -121,20 +226,6 @@ export async function POST(req: NextRequest) {
       }
     }
     return NextResponse.json({ received: true });
-  }
-
-  if (provider === "nowpayments") {
-    if (!process.env.NOWPAYMENTS_IPN_SECRET) {
-      return NextResponse.json(
-        { error: "NowPayments IPN not configured; use x-provider: coinbase_commerce or set NOWPAYMENTS_IPN_SECRET" },
-        { status: 503 }
-      );
-    }
-    // NowPayments IPN format and signature vary by integration; extend here when you wire a specific flow.
-    return NextResponse.json(
-      { received: true, note: "NowPayments IPN verification not implemented; add signature check and invoice metadata mapping." },
-      { status: 200 }
-    );
   }
 
   return NextResponse.json({ error: "Unknown crypto provider" }, { status: 400 });

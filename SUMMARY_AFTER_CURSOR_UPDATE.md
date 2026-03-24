@@ -91,6 +91,6 @@ Copy-paste or adapt:
 
 ---
 
-**Later:** Portal **shared nav** (My account, Live PM, My plan when linked, Documents with count, Profile, Sign out). **Coinbase Commerce** crypto webhook at `/api/webhooks/crypto` (HMAC verify, `charge:confirmed`, metadata `invoiceId` / optional `amountCents`). NowPayments still a stub.
+**Later:** Portal **shared nav**. **Crypto** `/api/webhooks/crypto`: **Coinbase** (`charge:confirmed`, metadata `invoiceId`) and **NOWPayments** IPN (HMAC-SHA512, sorted JSON; `payment_status: finished`, `order_id` = Invoice id, `NOWPAYMENTS_IPN_SECRET`).
 
 *Last summary update: portal nav + Coinbase crypto webhook; see git log on main.*

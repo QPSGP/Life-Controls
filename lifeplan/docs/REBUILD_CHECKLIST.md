@@ -20,7 +20,7 @@
 | Reports (Life Plan, Live PM, CSV) | ✅ Done | Admin → Reports |
 | Member portal (login, plan, schedule, profile) | ✅ Done | /portal |
 | Auth (admin + member login/logout) | ✅ Done | Server actions + cookie |
-| Payments (Stripe/crypto) | ✅ Done | Stripe: invoice.paid, checkout, subscription events. Crypto: Coinbase Commerce `charge:confirmed` → Payment + Invoice (HMAC verify; metadata.invoiceId). NowPayments IPN stub in `/api/webhooks/crypto` |
+| Payments (Stripe/crypto) | ✅ Done | Stripe: invoice.paid, checkout, subscription events. Crypto `/api/webhooks/crypto`: Coinbase `charge:confirmed`; NOWPayments IPN HMAC-SHA512 + `payment_status: finished` → Payment + Invoice (`order_id` = Invoice id) |
 | Subscription signup / self-serve billing | ❓ Optional | If you want members to sign up and pay without admin |
 
 ---
