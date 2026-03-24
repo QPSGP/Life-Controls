@@ -1,11 +1,18 @@
-# Run once to create tables and seed subscription plans.
-# Requires: GitHub repo secret DATABASE_URL (your Postgres connection string from Vercel/Neon).
-# Trigger: Actions tab → "DB push and seed" → Run workflow.
+# Sync Postgres schema with prisma/schema.prisma (adds columns like stripeSubscriptionId, memberId on documents, etc.)
+# Requires: GitHub secret DATABASE_URL (same as Vercel/Neon — postgresql://...)
+# Trigger: Actions → "DB push and seed" → Run workflow
+#
+# Note: This file must live at repo root .github/workflows/ (not under lifeplan/).
+# All npm/prisma commands run in the lifeplan/ subdirectory.
 
 name: DB push and seed
 
 on:
   workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: lifeplan
 
 jobs:
   db:
@@ -18,6 +25,7 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
+          cache-dependency-path: lifeplan/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -27,13 +35,11 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           if [[ -z "$DATABASE_URL" ]]; then
-            echo "::error::DATABASE_URL secret is not set. Add it in Settings → Secrets and variables → Actions."
+            echo "::error::DATABASE_URL secret is not set. Settings → Secrets and variables → Actions."
             exit 1
           fi
           if [[ ! "$DATABASE_URL" =~ ^postgres(ql)?:// ]]; then
             echo "::error::DATABASE_URL must start with postgresql:// or postgres://"
-            echo "Edit the secret in GitHub: Settings → Secrets and variables → Actions → DATABASE_URL"
-            echo "Paste only the raw connection string (no quotes, no spaces before/after). Example: postgresql://user:pass@host/db?sslmode=require"
             exit 1
           fi
 

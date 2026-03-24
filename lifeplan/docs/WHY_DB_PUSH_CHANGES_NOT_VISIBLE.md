@@ -6,6 +6,8 @@ Two separate things have to be up to date: **the database** and **the deployed a
 
 ## 1. Database (tables) — “DB push and seed” workflow
 
+The workflow file lives at **repo root** `.github/workflows/db-push-and-seed.yml` and runs commands in the **`lifeplan/`** directory. If you see errors like **`subscriptions.stripeSubscriptionId` does not exist** or **`universa_documents.memberId` does not exist**, the production database is behind the Prisma schema — run **DB push and seed** after pulling the latest `main`, or run locally: `cd lifeplan && npx prisma db push`.
+
 The GitHub Action **checks out the branch you choose** (e.g. `main`) and runs `prisma db push` using the **schema in that branch**.
 
 - If the **UNIVERSA models** (and any other new schema) are **not in the code on that branch**, the workflow will only push the old schema → **no new tables**.

@@ -2,6 +2,8 @@
 
 Your `DATABASE_URL` is set in **Vercel**, not on your machine. Use GitHub Actions to create/update tables and (optionally) seed plans.
 
+**Where the workflow lives:** The workflow file must be at **repository root** `.github/workflows/db-push-and-seed.yml` (not inside `lifeplan/`). GitHub only runs workflows from the repo root. All steps run `npm` and `prisma` inside the **`lifeplan/`** folder.
+
 **Two separate things:** (1) **Vercel deployment** = when you push code to GitHub, Vercel builds and deploys the app. (2) **DB push and seed** = this workflow only updates the database (tables + seed). Running the workflow does **not** trigger a new Vercel deployment. To get a new deployment, push a commit or click Redeploy in the Vercel dashboard.
 
 ---
@@ -12,7 +14,7 @@ When you add new columns or tables, run the workflow so the database is updated.
 
 **Run it once.** You do not need to click "Run workflow" twice. The message **"This workflow has a workflow_dispatch trigger"** is normal — it just means the workflow runs only when you start it manually.
 
-1. Open: **https://github.com/QPSGP/Sovereign-Life-Plan/actions**
+1. Open your repo’s **Actions** tab (e.g. **https://github.com/QPSGP/Life-Controls/actions** or **Sovereign-Life-Plan** — use the repo that contains the `lifeplan/` folder).
 2. In the **left sidebar**, click **“DB push and seed”**.
 3. On the right, click the **“Run workflow”** button—it sits **above the list of past runs** on the right (no yellow box).
 4. Leave the branch as **main** (or your default branch), then click the green **“Run workflow”** button.
@@ -27,7 +29,7 @@ After it succeeds, your database has the latest schema (e.g. the `passwordHash` 
 
 ## First-time setup: Add `DATABASE_URL` to GitHub secrets
 
-1. Open your repo: **https://github.com/QPSGP/Sovereign-Life-Plan**
+1. Open your GitHub repo (e.g. **Life-Controls** or **Sovereign-Life-Plan**)
 2. Go to **Settings** → **Secrets and variables** → **Actions**
 3. Click **New repository secret**
 4. **Name:** `DATABASE_URL`
