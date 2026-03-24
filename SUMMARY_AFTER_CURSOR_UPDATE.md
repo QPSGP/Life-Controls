@@ -91,4 +91,6 @@ Copy-paste or adapt:
 
 ---
 
-*Last summary update: after completing portal documents, Stripe webhook, form validation, grantor/grantee → Person link, and pushing to main.*
+**Later:** Portal **shared nav** (My account, Live PM, My plan when linked, Documents with count, Profile, Sign out). **Coinbase Commerce** crypto webhook at `/api/webhooks/crypto` (HMAC verify, `charge:confirmed`, metadata `invoiceId` / optional `amountCents`). NowPayments still a stub.
+
+*Last summary update: portal nav + Coinbase crypto webhook; see git log on main.*
