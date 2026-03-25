@@ -36,6 +36,8 @@ After it succeeds, your database has the latest schema (e.g. the `passwordHash` 
 5. **Value:** Paste the **raw** connection string only. It must start with `postgresql://` or `postgres://` (example: `postgresql://user:pass@host.vercel-storage.com/db?sslmode=require`). Do **not** wrap it in quotes or add spaces. Get it from Vercel (Storage → your Postgres DB → connection string) or Neon/Supabase.
 6. Click **Add secret**
 
+**Optional — Neon:** Add **`DATABASE_DIRECT_URL`** with Neon’s **direct** (non-pooler) connection string. If you skip it, the workflow uses `DATABASE_URL` for both (same as local npm scripts). See **`docs/DATABASE_NEON.md`**.
+
 ## 2. Run the workflow
 
 1. In the repo, open the **Actions** tab

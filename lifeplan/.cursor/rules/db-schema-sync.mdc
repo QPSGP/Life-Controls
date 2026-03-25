@@ -1,0 +1,18 @@
+---
+description: Sync Prisma schema to the database (db push) when the user or schema needs it.
+globs:
+alwaysApply: false
+---
+
+# Database schema sync (agent)
+
+When the user hits Prisma errors about **missing columns/tables** (e.g. `stripeSubscriptionId`, `P1017`), sync the DB:
+
+1. **Preferred (has network + `.env` with `DATABASE_URL`):** From repo root:
+   - `Set-Location lifeplan; npm run db:push`
+   - Use **network** permission. Requires `DATABASE_URL` in `lifeplan/.env`.
+   - **Neon:** If `P1017` (connection closed) persists, add **`DATABASE_DIRECT_URL`** in `.env` using Neon’s **direct** (non-pooler) host; see `docs/DATABASE_NEON.md`.
+
+2. **GitHub Actions:** User can run **Actions → DB push and seed** (uses `DATABASE_URL` and optional `DATABASE_DIRECT_URL` secrets).
+
+Prisma uses **`directUrl`** in `schema.prisma`; `npm run db:push` / `db:generate` / `build` run via `scripts/prisma-with-direct-url.cjs`, which sets `DATABASE_DIRECT_URL` to `DATABASE_URL` when unset so Vercel/builds work without a second secret.

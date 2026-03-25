@@ -1,5 +1,5 @@
 # Sync Postgres schema with prisma/schema.prisma (adds columns like stripeSubscriptionId, memberId on documents, etc.)
-# Requires: GitHub secret DATABASE_URL (same as Vercel/Neon — postgresql://...)
+# Requires: GitHub secret DATABASE_URL. Optional: DATABASE_DIRECT_URL (Neon direct host — see lifeplan/docs/DATABASE_NEON.md).
 # Trigger: Actions → "DB push and seed" → Run workflow
 #
 # Note: This file must live at repo root .github/workflows/ (not under lifeplan/).
@@ -43,16 +43,13 @@ jobs:
             exit 1
           fi
 
-      - name: Prisma generate
-        run: npx prisma generate
-
-      - name: Prisma db push
+      - name: Prisma generate, db push, seed
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        # Non-interactive; accepts warnings (e.g. new unique on nullable stripeSubscriptionId)
-        run: npx prisma db push --accept-data-loss
-
-      - name: Prisma seed
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npx prisma db seed
+          DATABASE_DIRECT_URL: ${{ secrets.DATABASE_DIRECT_URL }}
+        run: |
+          set -e
+          export DATABASE_DIRECT_URL="${DATABASE_DIRECT_URL:-$DATABASE_URL}"
+          npm run db:generate
+          npm run db:push
+          npx prisma db seed

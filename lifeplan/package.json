@@ -4,13 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "npm run db:generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio",
+    "db:generate": "node scripts/prisma-with-direct-url.cjs generate",
+    "db:push": "node scripts/prisma-with-direct-url.cjs db push --accept-data-loss",
+    "db:migrate": "node scripts/prisma-with-direct-url.cjs migrate dev",
+    "db:studio": "node scripts/prisma-with-direct-url.cjs studio",
     "db:seed": "node --env-file=.env prisma/seed.js",
     "db:seed:demo": "node --env-file=.env prisma/seed-demo.js",
     "db:import:universa": "node --env-file=.env scripts/import-universa-csv.js"

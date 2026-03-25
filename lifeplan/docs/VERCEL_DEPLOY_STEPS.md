@@ -35,6 +35,7 @@ Before the first deploy, add at least these. You can add more later.
 | Name | Value | Notes |
 |------|--------|--------|
 | `DATABASE_URL` | Your Postgres connection string | From Vercel Postgres, Neon, or Supabase. Must start with `postgresql://` and end with `?sslmode=require` for serverless. |
+| `DATABASE_DIRECT_URL` | (Optional) Second connection string | **Neon:** use the **direct** (non-pooler) URL so `prisma generate` during build matches `schema.prisma`. If omitted, the build script defaults it to `DATABASE_URL` (see `scripts/prisma-with-direct-url.cjs`). |
 | `AUTH_SECRET` | A long random string | Generate with: [generate-secret.vercel.app](https://generate-secret.vercel.app/32) or `openssl rand -base64 32`. |
 
 **Optional (add when you’re ready for payments):**
