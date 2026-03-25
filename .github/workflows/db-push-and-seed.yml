@@ -10,6 +10,10 @@ name: DB push and seed
 on:
   workflow_dispatch:
 
+# JS actions (checkout, setup-node) use Node 24+ per GitHub deprecation of Node 20 (see changelog 2025-09-19).
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 defaults:
   run:
     working-directory: lifeplan
@@ -18,13 +22,13 @@ jobs:
   db:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: "20"
-          cache: "npm"
+          node-version: "24"
+          cache: npm
           cache-dependency-path: lifeplan/package-lock.json
 
       - name: Install dependencies
