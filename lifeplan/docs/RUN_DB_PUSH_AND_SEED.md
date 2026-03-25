@@ -1,6 +1,8 @@
 # Run DB push and seed (without using your PC)
 
-Your `DATABASE_URL` is set in **Vercel**, not on your machine. Use GitHub Actions to create/update tables and (optionally) seed plans.
+Your `DATABASE_URL` is set in **Vercel** for the live app. **GitHub Actions does not see Vercel’s variables** — you must also add **`DATABASE_URL` as a repository secret** on GitHub (see below) or the workflow fails with *“DATABASE_URL secret is not set”*.
+
+Use GitHub Actions to create/update tables and (optionally) seed plans.
 
 **Where the workflow lives:** The workflow file must be at **repository root** `.github/workflows/db-push-and-seed.yml` (not inside `lifeplan/`). GitHub only runs workflows from the repo root. All steps run `npm` and `prisma` inside the **`lifeplan/`** folder.
 
@@ -37,6 +39,21 @@ After it succeeds, your database has the latest schema (e.g. the `passwordHash` 
 6. Click **Add secret**
 
 **Optional — Neon:** Add **`DATABASE_DIRECT_URL`** with Neon’s **direct** (non-pooler) connection string. If you skip it, the workflow uses `DATABASE_URL` for both (same as local npm scripts). See **`docs/DATABASE_NEON.md`**.
+
+---
+
+## Error: `DATABASE_URL secret is not set`
+
+That means **this GitHub repo** has no **Actions** secret named exactly **`DATABASE_URL`**.
+
+1. Copy the same Postgres connection string you use in **Vercel** (or from **Neon** / **Supabase**).
+2. On GitHub: **Settings** → **Secrets and variables** → **Actions** → **Secrets** (not “Variables” unless you know you use those).
+3. **New repository secret** → name **`DATABASE_URL`** → paste the URL → **Add secret**.
+4. Re-run **DB push and seed**.
+
+**Common mistakes:** Secret added to a **different repo** or **fork**; name typo (`DATABASE_URLS`, `database_url`); value wrapped in quotes; using **Environment** secrets without assigning the workflow to that environment (repository secrets are simpler).
+
+---
 
 ## 2. Run the workflow
 

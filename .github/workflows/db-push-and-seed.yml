@@ -35,7 +35,17 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           if [[ -z "$DATABASE_URL" ]]; then
-            echo "::error::DATABASE_URL secret is not set. Settings → Secrets and variables → Actions."
+            echo "::error::DATABASE_URL is not set for this workflow."
+            echo ""
+            echo "GitHub Actions does NOT read Vercel env vars. Add the secret on GitHub:"
+            echo "  1. Open THIS repo on GitHub (same repo that runs this workflow)."
+            echo "  2. Settings → Secrets and variables → Actions → tab 'Secrets'."
+            echo "  3. New repository secret → Name exactly: DATABASE_URL"
+            echo "  4. Value: paste your Postgres URL from Vercel (Project → Settings → Environment Variables)"
+            echo "     or Neon dashboard (Connection string). No quotes. Must start with postgresql://"
+            echo "  5. Save, then run 'DB push and seed' again."
+            echo ""
+            echo "Doc: lifeplan/docs/RUN_DB_PUSH_AND_SEED.md"
             exit 1
           fi
           if [[ ! "$DATABASE_URL" =~ ^postgres(ql)?:// ]]; then
