@@ -49,7 +49,8 @@ jobs:
       - name: Prisma db push
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npx prisma db push
+        # Non-interactive; accepts warnings (e.g. new unique on nullable stripeSubscriptionId)
+        run: npx prisma db push --accept-data-loss
 
       - name: Prisma seed
         env:
