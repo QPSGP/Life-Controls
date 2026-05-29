@@ -64,6 +64,15 @@ export default async function PortalPage(props: { searchParams: Promise<{ update
         </section>
 
         <section className="mb-8">
+          <h2 className="text-lg font-medium text-neutral-300 mb-3">My CRM</h2>
+          <p className="text-neutral-500 text-sm mb-2">Manage people and companies — profiles, notes, and activity.</p>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/portal/contacts" className="inline-block rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-600">My contacts →</Link>
+            <Link href="/portal/companies" className="inline-block rounded bg-neutral-800 px-4 py-2 text-sm text-white hover:bg-neutral-700">My companies →</Link>
+          </div>
+        </section>
+
+        <section className="mb-8">
           <h2 className="text-lg font-medium text-neutral-300 mb-3">My miniday schedule (Live PM)</h2>
           <p className="text-neutral-500 text-sm mb-2">View and print all tasks / physical movements from your life plan.</p>
           <Link href="/portal/schedule" className="inline-block rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-600">Live PM — View schedule →</Link>

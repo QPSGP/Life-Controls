@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAdminCookie } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
   const origin = req.nextUrl.origin;
+  if (!(await verifyAdminCookie())) {
+    return NextResponse.redirect(origin + "/admin/login");
+  }
   try {
     const email = "admin@sovereign-life-plan.local";
     const existing = await prisma.user.findUnique({ where: { email } });

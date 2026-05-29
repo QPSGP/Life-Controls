@@ -56,13 +56,26 @@
 
 ---
 
+## 3b. Contacts & Companies (self-serve CRM)
+
+| Piece | Status | Notes |
+|-------|--------|--------|
+| Schema (Contact, Company, Communication links) | ✅ Done | Prisma |
+| Portal — My Contacts / My Companies | ✅ Done | List, filters (business/personal, private/public), add, edit, delete |
+| Contact / company profiles | ✅ Done | Notes, how to engage, key facts, tags, company link |
+| Activity timeline on detail pages | ✅ Done | Log call / email / mailout from contact or company page |
+| Admin CRM oversight | ❌ Not done | Optional support list |
+| CSV import (Outlook-style) | ❌ Not done | Phase 5 in CONTACTS_AND_COMPANIES_DESIGN.md |
+
+---
+
 ## 4. Legacy reference (no code in repo)
 
 | Source | Content | Rebuild status |
 |--------|---------|----------------|
 | **UNIVERSA/** | GRANTDEE, GRANTORS, GRANTEES, PER_ID, PERALIAS (QBE only; no .DB) | Document/grantor/grantee done; Person/alias UI and import pending |
 | **OFFICE/UNIVERSA/** | Mirror of UNIVERSA | Same as above |
-| **FCA, Label, WEATHERM, cube, etc.** | Other legacy | Not yet catalogued; add to this checklist if you want them in the app |
+| **FCA, Label, WEATHERM, cube, etc.** | Other legacy | Catalogued in **`docs/LEGACY_PARADOX_CATALOG.md`** (queries + migration status); implement per module when needed |
 
 ---
 

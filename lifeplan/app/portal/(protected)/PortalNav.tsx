@@ -17,6 +17,12 @@ export function PortalNav({
         <Link href="/portal" className={linkClass}>
           My account
         </Link>
+        <Link href="/portal/contacts" className={linkClass}>
+          Contacts
+        </Link>
+        <Link href="/portal/companies" className={linkClass}>
+          Companies
+        </Link>
         <Link href="/portal/schedule" className={linkClass}>
           Live PM
         </Link>

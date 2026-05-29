@@ -96,6 +96,7 @@ export function AdminDashboardClient() {
             <Link href="/admin/reports" className="text-neutral-400 hover:text-white text-sm">Reports</Link>
             <Link href="/admin/documents" className="text-neutral-400 hover:text-white text-sm">Documents</Link>
             <Link href="/admin/people" className="text-neutral-400 hover:text-white text-sm">People</Link>
+            <Link href="/admin/staff" className="text-neutral-400 hover:text-white text-sm">Staff</Link>
             <Link href="/" className="text-neutral-400 hover:text-white text-sm">← Home</Link>
             <a href="/api/auth/admin/logout" className="text-neutral-500 hover:text-white text-sm">Log out</a>
           </div>
