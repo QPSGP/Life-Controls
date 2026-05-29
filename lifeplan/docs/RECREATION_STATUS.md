@@ -13,7 +13,7 @@ What from the old Paradox program is available in the new app.
 | **Plans & tasks** | PMS, PMS1 | Areas of purpose, responsibility, tasks (verb/noun/object), objectives, results, done/done date |
 | **Orders / billing** | LPTRANS, TRANSACT, PAYMENT | Orders, invoices, amounts, payments |
 | **Communications** | CALLS, MAILOUT, LPCOM, etc. | Calls and mailouts per member |
-| **Other** | EXPEND, CHORELST, AREAPURP | Expenditures, chores, lookups |
+| **Other** | EXPEND, CHORELST, AREAPURP | Expenditures, physical movements (CHORELST), lookups |
 
 ---
 
@@ -32,7 +32,7 @@ What from the old Paradox program is available in the new app.
 | **CALLS / MAILOUT** | Communication | ✅ Admin: log call/mailout/email per member, list recent communications. |
 | **Member categories** | MemberCategory | ✅ Admin: add/remove category per member; filter members list by category. |
 | **EXPEND** | Expenditure | ✅ Schema + Admin: log expenditure (member or global), description, amount, date, notes; list recent. |
-| **CHORELST** | Chore | ✅ Schema + Admin: add chore (title, description), list, mark done/undo. |
+| **CHORELST** | Chore | ✅ Schema + Admin: add physical movement (title, description), list, mark done/undo at `/admin/physical-movements`. |
 | **Reports / exports** | CSV downloads | ✅ **Reports** page: download members.csv (contact + categories), transactions.csv (invoices, paid, balance). |
 
 ---
@@ -56,7 +56,7 @@ All major legacy areas are represented in the new app:
 - **Orders / billing** → Orders + order lines, Invoices + payments (create, record, view).
 - **Communications** → Log and list calls/mailouts/email.
 - **Expenditures** → Log and list.
-- **Chores** → Add, list, mark done.
+- **Physical movements (CHORELST)** → Add, list, mark done.
 - **Reports** → CSV export for members and transactions.
 
 After schema changes (e.g. new tables/columns), run **“DB push and seed”** so the database stays in sync.

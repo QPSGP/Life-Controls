@@ -3,7 +3,6 @@ import { togglePhysicalMovementTaskDone } from "@/lib/physical-movement-tasks";
 
 export const dynamic = "force-dynamic";
 
-/** @deprecated Use /api/physical-movements/[id]/done */
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   return togglePhysicalMovementTaskDone(req, id);

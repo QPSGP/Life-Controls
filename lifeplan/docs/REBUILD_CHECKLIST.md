@@ -14,7 +14,7 @@
 | Orders & order lines | ✅ Done | Schema + admin list/edit |
 | Communications (per member) | ✅ Done | Admin list/add/edit |
 | Expenditures | ✅ Done | Admin list/add/edit; optional memberId |
-| Chores (internal tasks) | ✅ Done | Admin list/add/edit/done |
+| Physical movements (internal task list, legacy CHORELST) | ✅ Done | Admin list/add/edit/done at /admin/physical-movements |
 | Life plan hierarchy (Subject → Purpose → Responsibility → PM) | ✅ Done | Admin + portal; miniday categories |
 | Physical movements (DATE, TIME, D/R, done) | ✅ Done | Admin edit; Live PM report; portal schedule |
 | Reports (Life Plan, Live PM, CSV) | ✅ Done | Admin → Reports |

@@ -21,7 +21,7 @@
 | **Member plans & tasks** | PMS, PMS1 | Plans per member: areas of purpose, areas of responsibility, tasks (verb/noun/object), objectives, results, done/done date. Can become “member plan” or “member goals” in the new app. |
 | **Subscriptions & payments** | LPTRANS, TRANSACT, PAYMENT | Orders, invoices, amounts, balances, payments. Core for **subscription billing**, dues, and one-time charges. |
 | **Member communications** | CALLS, CCALLS, MAILOUT, LPCOM, LPCNTCOM | Calls and mailouts — member outreach and engagement. |
-| **Other** | CHORELST, EXPEND, AREAPURP, DB1.MDB | Chores, expenditures, area-of-purpose lookups; Access DB to migrate. |
+| **Other** | CHORELST, EXPEND, AREAPURP, DB1.MDB | Physical movements (CHORELST), expenditures, area-of-purpose lookups; Access DB to migrate. |
 
 ---
 

@@ -32,13 +32,13 @@ You can fill the app with **sample data** so you can click around and see lists,
 - **Expenditures**: ~10 per member over the month.
 - **Invoices**: multiple per member (paid, open, past_due, partial payments).
 - **Orders**: 4 per member with order lines (subscriptions and one-time).
-- **Chores**: 7 total (4 done, 3 open), spread over the month.
+- **Physical movements**: 7 total (4 done, 3 open), spread over the month.
 
 To **refresh** demo data (e.g. after changing the seed): delete both demo members in admin, then run `npm run db:seed:demo` again.
 
 After running it, you can:
 
-- Use **admin** to see members, plans, communications, chores, expenditures, invoices, and the life plan.
+- Use **admin** to see members, plans, communications, physical movements, expenditures, invoices, and the life plan.
 - Log in to the **portal** as **Demo Personal** (`demo@sovereign-life-plan.local` / `demo1234`) or **Demo Business** (`demo-business@sovereign-life-plan.local` / `fact4567`) to see profile, subscription, invoices, and “My plan” with the full demo content.
 
 ---
@@ -60,7 +60,7 @@ There is **no Paradox export or import in the repo**. If you have data from the 
    I can then outline or implement the exact import steps and script.
 
 3. **Manual entry**  
-   Use the admin UI (and portal) to add members, life plans, communications, chores, expenditures, and invoices. The **Reports** page can export members and transactions to CSV for backup or use elsewhere.
+   Use the admin UI (and portal) to add members, life plans, communications, physical movements, expenditures, and invoices. The **Reports** page can export members and transactions to CSV for backup or use elsewhere.
 
 ---
 

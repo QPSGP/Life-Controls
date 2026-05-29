@@ -23,7 +23,7 @@ Reference for how each table works on its own and how it links to others. Use th
 | | Payment | payments | Payment against an Invoice. Can be fiat or crypto; one per invoice payment. |
 | **Communications** | Communication | communications | Logged contact: call/mailout/email per Member. |
 | **Other** | Expenditure | expenditures | Expense (optional Member). description, amountCents, date. |
-| | Chore | chores | Internal task (title, description, done). No link to Member. |
+| | Chore | chores | Physical movement task list (legacy CHORELST; title, description, done). No link to Member. UI: /admin/physical-movements. |
 | **Legacy-style** | MemberPlan | member_plans | Alternate plan link (memberId + text fields). Optional; portal uses SubjectBusiness.memberId. |
 | | MemberPlanTask | member_plan_tasks | Tasks under MemberPlan. |
 
@@ -74,9 +74,9 @@ User (1)
 - **Together:** Expenditure can optionally link to a Member (memberId). If you need “expenses per member,” set memberId; otherwise use null for global/team expenses. Delete Member → SetNull on memberId (expenditure kept, link cleared).
 - **Separate:** No link to Invoices or Orders; standalone expense log.
 
-### Chores
+### Physical movements (legacy CHORELST)
 
-- **Together:** Chore has no foreign keys. It’s a flat list (title, description, done). Used for internal to‑dos only.
+- **Together:** Chore has no foreign keys. It’s a flat list (title, description, done). Used for internal physical-movement to-dos at `/admin/physical-movements` (separate from life-plan PhysicalMovement rows).
 - **Separate:** Not tied to any other table.
 
 ### MemberPlan / MemberPlanTask
@@ -106,7 +106,7 @@ User (1)
 | Expenditure | Member (optional) | memberId | SetNull |
 | MemberPlan | Member | memberId | Cascade |
 | MemberPlanTask | MemberPlan | memberPlanId | Cascade |
-| Chore | — | — | — |
+| Chore | — | — | — | (legacy CHORELST; labeled physical movements in admin) |
 
 ---
 
@@ -123,7 +123,7 @@ User (1)
 - **Invoice / Payment:** Invoice is a bill for a member; payments reduce balance. No direct link to Order or Subscription in schema.
 - **Communication:** One row per contact event; only links to Member.
 - **Expenditure:** Optional memberId; can be global (null) or per member.
-- **Chore:** No relations; standalone task list.
+- **Chore (physical movements list):** No relations; standalone task list at `/admin/physical-movements`.
 
 ---
 
@@ -132,6 +132,6 @@ User (1)
 - **Life plan:** One tree (User → Subject → Purpose → Responsibility → Movement); optionally show a Subject to a Member via `SubjectBusiness.memberId`.
 - **Member-centric:** Member ties together categories, subscriptions, orders, invoices, communications, and optionally expenditures and “My plan.”
 - **Billing:** SubscriptionPlan + Subscription for “who is on what plan”; Invoice + Payment for “what they owe and what was paid.” Orders are separate unless you link them in app logic.
-- **Standalone:** Chores; Expenditure (if memberId null); and optionally MemberPlan/MemberPlanTask if you don’t use them.
+- **Standalone:** Physical movements (CHORELST list); Expenditure (if memberId null); and optionally MemberPlan/MemberPlanTask if you don’t use them.
 
 Use this doc alongside `prisma/schema.prisma` and `docs/LIFE_PLAN_TABLE_STRUCTURE.md` when you need to see how tables function together and separately.

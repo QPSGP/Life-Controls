@@ -399,7 +399,7 @@ model Expenditure {
   @@map("expenditures")
 }
 
-// ----- Chores (legacy CHORELST) -----
+// ----- Physical movements (legacy CHORELST; Prisma model Chore, table chores) -----
 model Chore {
   id          String   @id @default(cuid())
   title       String

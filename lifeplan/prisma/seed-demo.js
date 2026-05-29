@@ -360,7 +360,7 @@ async function main() {
   for (const c of comms) await prisma.communication.create({ data: c });
   console.log("Created " + comms.length + " communications (1 month spread).");
 
-  // Chores over the month (mix of done and open)
+  // Physical movements over the month (legacy CHORELST demo; mix of done and open)
   await prisma.chore.create({ data: { title: "Review demo member", description: "Check portal and plan display", done: true, doneAt: daysAgo(25) } });
   await prisma.chore.create({ data: { title: "Send welcome emails", description: "New signups this week", done: true, doneAt: daysAgo(20) } });
   await prisma.chore.create({ data: { title: "Update docs", description: "After demo data is verified", done: true, doneAt: daysAgo(12) } });
@@ -368,7 +368,7 @@ async function main() {
   await prisma.chore.create({ data: { title: "Send renewal reminders", description: "Members due in 30 days" } });
   await prisma.chore.create({ data: { title: "Month-end invoice run", description: "Generate open invoices" } });
   await prisma.chore.create({ data: { title: "Review past_due list", description: "Follow up on overdue invoices" } });
-  console.log("Created 7 chores (4 done, 3 open).");
+  console.log("Created 7 physical movements (4 done, 3 open).");
 
   // One month of expenditures per member
   const expenditures = [

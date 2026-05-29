@@ -42,7 +42,7 @@ Keep and reuse:
 - **Auth:** Admin login, member portal login, session handling.
 - **Layout:** Admin layout, portal layout, nav.
 - **Patterns:** API route structure, protected routes, dashboard fetch.
-- **Existing modules:** Members, subscriptions, life plan hierarchy, invoices, orders, communications, expenditures, chores, reports.
+- **Existing modules:** Members, subscriptions, life plan hierarchy, invoices, orders, communications, expenditures, physical movements, reports.
 
 Add on top:
 

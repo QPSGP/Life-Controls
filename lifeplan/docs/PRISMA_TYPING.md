@@ -46,7 +46,7 @@ try {
 
 - **app/admin/(protected)/orders/page.tsx** — `OrderWithMemberAndLines[]` (query uses `include: { member, orderLines }`)
 - **app/admin/(protected)/expenditures/page.tsx** — `ExpenditureWithMember[]` (query uses `include: { member }`)
-- **app/admin/(protected)/chores/page.tsx** — `Chore[]` from `@prisma/client` (no include; avoids fragile `Awaited<ReturnType<...>>`)
+- **app/admin/(protected)/physical-movements/page.tsx** — `Chore[]` from `@prisma/client` (no include; avoids fragile `Awaited<ReturnType<...>>`)
 
 Pages that **don’t** use try/catch with an empty initial array (e.g. direct `const [a, b] = await Promise.all([...])`) get the correct type from the query and don’t need this.
 
