@@ -13,23 +13,37 @@ async function memberLoginAction(formData: FormData) {
   if (!email || !password) {
     redirect("/login?error=missing");
   }
+  if (!process.env.AUTH_SECRET?.trim()) {
+    redirect("/login?error=config");
+  }
+
+  let member: { id: string; passwordHash: string | null } | null = null;
   try {
-    const member = await prisma.member.findFirst({
+    member = await prisma.member.findFirst({
       where: { email },
       select: { id: true, passwordHash: true },
     });
-    if (!member?.passwordHash) {
-      redirect("/login?error=invalid");
+  } catch (e) {
+    console.error("Member login DB error:", e);
+    const msg = e instanceof Error ? e.message : String(e);
+    if (/passwordHash|column .* does not exist|relation .* does not exist/i.test(msg)) {
+      redirect("/login?error=schema");
     }
-    const ok = await bcrypt.compare(password, member.passwordHash);
-    if (!ok) {
-      redirect("/login?error=invalid");
+    if (/connect|ECONNREFUSED|timeout|P1001|P1017/i.test(msg)) {
+      redirect("/login?error=db");
     }
-    await setMemberCookie(member.id);
-    redirect("/portal");
-  } catch {
     redirect("/login?error=server");
   }
+
+  if (!member?.passwordHash) {
+    redirect("/login?error=invalid");
+  }
+  const ok = await bcrypt.compare(password, member.passwordHash);
+  if (!ok) {
+    redirect("/login?error=invalid");
+  }
+  await setMemberCookie(member.id);
+  redirect("/portal");
 }
 
 export default async function MemberLoginPage({
@@ -44,11 +58,30 @@ export default async function MemberLoginPage({
         <p className="text-xs font-medium uppercase tracking-wider text-zinc-500 mb-2">Sovereign Life Control Tool</p>
         <h1 className="text-xl font-semibold mb-2">Member portal</h1>
         <p className="text-sm text-neutral-400 mb-4">Sign in to view your plan, schedule, and account.</p>
-        {error === "invalid" && <p className="text-amber-500 text-sm mb-2">Invalid email or password.</p>}
+        {error === "invalid" && (
+          <p className="text-amber-500 text-sm mb-2">
+            Invalid email or password — or no portal password yet. Ask admin to open <strong>Admin → Members</strong>, find your row, and use <strong>Set password</strong> (min 6 characters).
+          </p>
+        )}
         {error === "missing" && <p className="text-amber-500 text-sm mb-2">Email and password required.</p>}
+        {error === "config" && (
+          <p className="text-amber-500 text-sm mb-2">
+            Server misconfiguration: <code className="text-amber-300">AUTH_SECRET</code> is not set in Vercel environment variables.
+          </p>
+        )}
+        {error === "schema" && (
+          <p className="text-amber-500 text-sm mb-2">
+            Database schema is out of date. Run GitHub Actions → <strong>DB push and seed</strong>, then have admin set your portal password.
+          </p>
+        )}
+        {error === "db" && (
+          <p className="text-amber-500 text-sm mb-2">
+            Cannot reach the database. Check <code className="text-amber-300">DATABASE_URL</code> on Vercel.
+          </p>
+        )}
         {error === "server" && (
           <p className="text-amber-500 text-sm mb-2">
-            Server error. Run the &quot;DB push and seed&quot; workflow in GitHub Actions once to add the password column, then have admin set a password for your account.
+            Unexpected server error during sign-in. Open <a href="/api/db-status" className="underline text-amber-300">/api/db-status</a> for details.
           </p>
         )}
         <form action={memberLoginAction} className="space-y-4">

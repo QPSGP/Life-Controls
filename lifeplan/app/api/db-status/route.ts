@@ -13,7 +13,29 @@ export async function GET() {
   try {
     await prisma.$queryRaw`SELECT 1`;
     const planCount = await prisma.subscriptionPlan.count();
-    return NextResponse.json({ ok: true, planCount });
+    let memberLoginReady = true;
+    let memberLoginNote: string | undefined;
+    try {
+      await prisma.member.findFirst({
+        select: { id: true, passwordHash: true },
+        take: 1,
+      });
+    } catch (memberErr) {
+      memberLoginReady = false;
+      memberLoginNote = memberErr instanceof Error ? memberErr.message : String(memberErr);
+    }
+    return NextResponse.json({
+      ok: true,
+      planCount,
+      authSecretSet: !!process.env.AUTH_SECRET?.trim(),
+      memberLoginReady,
+      memberLoginNote,
+      fix: !memberLoginReady
+        ? "Run npm run db:push (or GitHub Actions DB push and seed) to sync schema including members.passwordHash"
+        : !process.env.AUTH_SECRET?.trim()
+          ? "Set AUTH_SECRET in Vercel environment variables for member portal login"
+          : undefined,
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     const needsPush = /relation|does not exist|table .* does not exist/i.test(message);

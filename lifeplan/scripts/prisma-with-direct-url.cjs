@@ -4,10 +4,19 @@
  */
 const { spawnSync } = require("child_process");
 const path = require("path");
+const fs = require("fs");
+
+const root = path.join(__dirname, "..");
+const envPath = path.join(root, ".env");
+if (fs.existsSync(envPath)) {
+  require("dotenv").config({ path: envPath });
+}
 
 const env = { ...process.env };
-if (!(env.DATABASE_DIRECT_URL || "").trim()) {
-  env.DATABASE_DIRECT_URL = (env.DATABASE_URL || "").trim();
+const dbUrl = (env.DATABASE_URL || "").trim();
+const directUrl = (env.DATABASE_DIRECT_URL || "").trim();
+if (!directUrl && dbUrl) {
+  env.DATABASE_DIRECT_URL = dbUrl;
 }
 
 const args = process.argv.slice(2);
