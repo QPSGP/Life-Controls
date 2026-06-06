@@ -4,6 +4,7 @@ import { getMemberIdFromCookie } from "@/lib/member-auth";
 import { prisma } from "@/lib/db";
 import { MOVEMENT_TYPE_ORDER } from "@/lib/movement-types";
 import { SchedulePrintButton } from "./SchedulePrintButton";
+import { ScheduleFilters } from "./ScheduleFilters";
 
 export const dynamic = "force-dynamic";
 
@@ -140,45 +141,13 @@ export default async function PortalSchedulePage({
         {params.error === "unauthorized" && <p className="text-amber-500 text-sm mb-4">You can only update tasks in your own plan.</p>}
         {params.error === "update" && <p className="text-amber-500 text-sm mb-4">Update failed. Try again.</p>}
 
-        <div className="mb-6 print:hidden flex flex-wrap gap-3 items-end">
-          <form method="GET" className="flex flex-wrap gap-2 items-end">
-            <input type="hidden" name="verb" value={params.verb ?? ""} />
-            <input type="hidden" name="dateFrom" value={params.dateFrom ?? ""} />
-            <input type="hidden" name="dateTo" value={params.dateTo ?? ""} />
-            <label className="text-sm text-neutral-400">Done</label>
-            <select name="done" onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" defaultValue={params.done ?? "all"}>
-              <option value="all">All</option>
-              <option value="no">To do</option>
-              <option value="yes">Done</option>
-            </select>
-          </form>
-          {verbOptions.length > 0 && (
-            <form method="GET" className="flex flex-wrap gap-2 items-end">
-              <input type="hidden" name="done" value={params.done ?? ""} />
-              <input type="hidden" name="dateFrom" value={params.dateFrom ?? ""} />
-              <input type="hidden" name="dateTo" value={params.dateTo ?? ""} />
-              <label className="text-sm text-neutral-400">Verb</label>
-              <select name="verb" onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" defaultValue={params.verb ?? ""}>
-                <option value="">All</option>
-                {verbOptions.map((v) => (
-                  <option key={v} value={v}>{v}</option>
-                ))}
-              </select>
-            </form>
-          )}
-          <form method="GET" className="flex flex-wrap gap-2 items-end">
-            <input type="hidden" name="verb" value={params.verb ?? ""} />
-            <input type="hidden" name="done" value={params.done ?? ""} />
-            <label className="text-sm text-neutral-400">From</label>
-            <input type="date" name="dateFrom" defaultValue={params.dateFrom ?? ""} onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" />
-            <label className="text-sm text-neutral-400">To</label>
-            <input type="date" name="dateTo" defaultValue={params.dateTo ?? ""} onChange={(e) => e.currentTarget.form?.submit()} className="rounded bg-neutral-800 px-2 py-1.5 text-white border border-neutral-700 text-sm" />
-            <button type="submit" className="rounded bg-neutral-700 px-2 py-1.5 text-sm text-white hover:bg-neutral-600">Apply</button>
-          </form>
-          {(params.verb || params.done || params.dateFrom || params.dateTo) && (
-            <Link href="/portal/schedule" className="text-neutral-400 text-sm hover:text-white">Clear filters</Link>
-          )}
-        </div>
+        <ScheduleFilters
+          verb={params.verb}
+          done={params.done}
+          dateFrom={params.dateFrom}
+          dateTo={params.dateTo}
+          verbOptions={verbOptions}
+        />
 
         {rows.length === 0 ? (
           <div className="rounded-lg bg-neutral-900 p-6 text-center">

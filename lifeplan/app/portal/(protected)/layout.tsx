@@ -11,10 +11,16 @@ export default async function PortalLayout({
   const memberId = await getMemberIdFromCookie();
   if (!memberId) redirect("/login");
 
-  const [docCount, planCount] = await Promise.all([
-    prisma.universaDocument.count({ where: { memberId } }),
-    prisma.subjectBusiness.count({ where: { memberId } }),
-  ]);
+  let docCount = 0;
+  let planCount = 0;
+  try {
+    [docCount, planCount] = await Promise.all([
+      prisma.universaDocument.count({ where: { memberId } }),
+      prisma.subjectBusiness.count({ where: { memberId } }),
+    ]);
+  } catch (e) {
+    console.error("Portal layout DB error:", e);
+  }
 
   return (
     <>

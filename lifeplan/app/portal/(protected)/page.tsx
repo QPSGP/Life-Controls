@@ -12,11 +12,12 @@ export default async function PortalPage(props: { searchParams: Promise<{ update
     ? await (props.searchParams as Promise<{ updated?: string; error?: string }>)
     : (props.searchParams as { updated?: string; error?: string });
 
-  const [member, subscriptions, invoices, subjectBusinesses, documentCount] = await Promise.all([
-    prisma.member.findUniqueOrThrow({
-      where: { id: memberId },
-      include: { categories: { select: { category: true } } },
-    }),
+  const member = await prisma.member.findUnique({
+    where: { id: memberId },
+    include: { categories: { select: { category: true } } },
+  });
+  if (!member) redirect("/login?error=invalid");
+  const [subscriptions, invoices, subjectBusinesses, documentCount] = await Promise.all([
     prisma.subscription.findMany({
       where: { memberId, status: { in: ["active", "trial"] } },
       include: { plan: true },
