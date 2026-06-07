@@ -121,6 +121,13 @@ export function AdminDashboardClient() {
         {errorParam === "subscription" && (
           <p className="text-amber-500 text-sm mb-4">Could not add subscription — missing member or plan.</p>
         )}
+        {searchParams.get("contacts_imported") && (
+          <p className="text-emerald-500 text-sm mb-4">
+            Member contacts import — {searchParams.get("contacts_imported")} added
+            {searchParams.get("contacts_updated") ? `, ${searchParams.get("contacts_updated")} updated` : ""}
+            {searchParams.get("contacts_skipped") ? `, ${searchParams.get("contacts_skipped")} skipped` : ""}.
+          </p>
+        )}
         {errorParam === "delete" && <p className="text-amber-500 text-sm mb-4">Could not delete member (may have dependent data).</p>}
         {dbError && (
           <div className="text-amber-500 mb-6 space-y-2">
@@ -207,6 +214,8 @@ export function AdminDashboardClient() {
                   {m.lifePlanSubjectId && (
                     <Link href={"/admin/life-plan/subject/" + m.lifePlanSubjectId} className="text-emerald-400 text-sm hover:underline">View life plan</Link>
                   )}
+                  <Link href={"/admin/members/" + m.id + "/contacts/import"} className="text-emerald-400 text-sm hover:underline">Import contacts</Link>
+                  <a href={"/api/admin/members/" + m.id + "/contacts/export?format=vcf"} className="text-neutral-400 text-sm hover:underline">Export vCard</a>
                   <Link href={"/admin/members/" + m.id + "/edit"} className="text-neutral-400 text-sm hover:underline">Edit</Link>
                   <SetPasswordForm memberId={m.id} />
                   <DeleteMemberButton memberId={m.id} memberName={[m.firstName, m.lastName].filter(Boolean).join(" ") || m.email} />

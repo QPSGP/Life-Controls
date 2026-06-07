@@ -344,6 +344,8 @@ model Contact {
   keyFacts      String?  @db.Text
   tags          String?  // comma-separated or JSON; e.g. VIP, Prospect
   source        String?  // Outlook, RingCentral, Manual, Import
+  preferredChannel String? // email | phone | sms | whatsapp | linkedin | …
+  channels      Json?    // [{ type, label, value, primary? }] — social, messaging, extra phones/emails
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

@@ -1,4 +1,6 @@
 import { CRM_CATEGORY_OPTIONS, CRM_VISIBILITY_OPTIONS } from "@/lib/crm";
+import { PREFERRED_CHANNEL_OPTIONS } from "@/lib/crm-channels";
+import { ContactChannelsEditor } from "./ContactChannelsEditor";
 
 type CompanyOption = { id: string; name: string | null };
 
@@ -29,6 +31,8 @@ type ContactFormProps = {
     keyFacts: string | null;
     tags: string | null;
     source: string | null;
+    preferredChannel?: string | null;
+    channels?: unknown;
   };
   submitLabel?: string;
 };
@@ -61,11 +65,11 @@ export function ContactForm({ action, companies, contact, submitLabel = "Save co
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelClass}>First name</label>
-          <input type="text" name="firstName" defaultValue={contact?.firstName ?? ""} className={inputClass} />
+          <input type="text" name="firstName" defaultValue={contact?.firstName ?? ""} className={inputClass} autoComplete="given-name" />
         </div>
         <div>
           <label className={labelClass}>Last name</label>
-          <input type="text" name="lastName" defaultValue={contact?.lastName ?? ""} className={inputClass} />
+          <input type="text" name="lastName" defaultValue={contact?.lastName ?? ""} className={inputClass} autoComplete="family-name" />
         </div>
       </div>
 
@@ -77,28 +81,39 @@ export function ContactForm({ action, companies, contact, submitLabel = "Save co
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className={labelClass}>Email</label>
-          <input type="email" name="email" defaultValue={contact?.email ?? ""} className={inputClass} />
+          <input type="email" name="email" defaultValue={contact?.email ?? ""} className={inputClass} autoComplete="email" inputMode="email" />
         </div>
         <div>
           <label className={labelClass}>Secondary email</label>
-          <input type="email" name="emailSecondary" defaultValue={contact?.emailSecondary ?? ""} className={inputClass} />
+          <input type="email" name="emailSecondary" defaultValue={contact?.emailSecondary ?? ""} className={inputClass} inputMode="email" />
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className={labelClass}>Phone</label>
-          <input type="text" name="phone" defaultValue={contact?.phone ?? ""} className={inputClass} />
+          <input type="tel" name="phone" defaultValue={contact?.phone ?? ""} className={inputClass} autoComplete="tel" inputMode="tel" />
         </div>
         <div>
           <label className={labelClass}>Mobile</label>
-          <input type="text" name="mobile" defaultValue={contact?.mobile ?? ""} className={inputClass} />
+          <input type="tel" name="mobile" defaultValue={contact?.mobile ?? ""} className={inputClass} autoComplete="tel" inputMode="tel" />
         </div>
         <div>
           <label className={labelClass}>Fax</label>
-          <input type="text" name="fax" defaultValue={contact?.fax ?? ""} className={inputClass} />
+          <input type="tel" name="fax" defaultValue={contact?.fax ?? ""} className={inputClass} inputMode="tel" />
         </div>
       </div>
+
+      <div>
+        <label className={labelClass}>Preferred way to reach them</label>
+        <select name="preferredChannel" defaultValue={contact?.preferredChannel ?? ""} className={inputClass}>
+          {PREFERRED_CHANNEL_OPTIONS.map((o) => (
+            <option key={o.value || "auto"} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <ContactChannelsEditor initialChannels={contact?.channels} />
 
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -123,25 +138,25 @@ export function ContactForm({ action, companies, contact, submitLabel = "Save co
 
       <div>
         <label className={labelClass}>Street</label>
-        <input type="text" name="street" defaultValue={contact?.street ?? ""} className={inputClass} />
+        <input type="text" name="street" defaultValue={contact?.street ?? ""} className={inputClass} autoComplete="street-address" />
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className={labelClass}>City</label>
-          <input type="text" name="city" defaultValue={contact?.city ?? ""} className={inputClass} />
+          <input type="text" name="city" defaultValue={contact?.city ?? ""} className={inputClass} autoComplete="address-level2" />
         </div>
         <div>
           <label className={labelClass}>State</label>
-          <input type="text" name="state" defaultValue={contact?.state ?? ""} className={inputClass} />
+          <input type="text" name="state" defaultValue={contact?.state ?? ""} className={inputClass} autoComplete="address-level1" />
         </div>
         <div>
           <label className={labelClass}>ZIP</label>
-          <input type="text" name="zip" defaultValue={contact?.zip ?? ""} className={inputClass} />
+          <input type="text" name="zip" defaultValue={contact?.zip ?? ""} className={inputClass} autoComplete="postal-code" />
         </div>
       </div>
       <div>
         <label className={labelClass}>Country</label>
-        <input type="text" name="country" defaultValue={contact?.country ?? ""} className={inputClass} />
+        <input type="text" name="country" defaultValue={contact?.country ?? ""} className={inputClass} autoComplete="country-name" />
       </div>
 
       <div>
@@ -167,7 +182,7 @@ export function ContactForm({ action, companies, contact, submitLabel = "Save co
         </div>
       </div>
 
-      <button type="submit" className="rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-600">{submitLabel}</button>
+      <button type="submit" className="w-full sm:w-auto rounded bg-emerald-700 px-4 py-3 text-sm text-white hover:bg-emerald-600">{submitLabel}</button>
     </form>
   );
 }

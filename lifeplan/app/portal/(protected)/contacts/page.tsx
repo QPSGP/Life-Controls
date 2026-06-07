@@ -8,7 +8,7 @@ import { CrmFilterTabs } from "../CrmFilterTabs";
 export const dynamic = "force-dynamic";
 
 export default async function PortalContactsPage(props: {
-  searchParams: Promise<{ category?: string; visibility?: string; deleted?: string; error?: string }> | { category?: string; visibility?: string; deleted?: string; error?: string };
+  searchParams: Promise<{ category?: string; visibility?: string; deleted?: string; error?: string; imported?: string; updated?: string; skipped?: string }> | { category?: string; visibility?: string; deleted?: string; error?: string; imported?: string; updated?: string; skipped?: string };
 }) {
   const memberId = await getMemberIdFromCookie();
   if (!memberId) redirect("/login");
@@ -34,8 +34,21 @@ export default async function PortalContactsPage(props: {
             <h1 className="text-2xl font-semibold mt-2">My contacts</h1>
             <p className="text-neutral-500 text-sm mt-0.5">People you know — business and personal profiles.</p>
           </div>
-          <Link href="/portal/contacts/new" className="rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-600">Add contact</Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/portal/contacts/import" className="rounded bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700">Import</Link>
+            <a href="/api/portal/contacts/export?format=vcf" className="rounded bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700">Export vCard</a>
+            <a href="/api/portal/contacts/export?format=csv" className="rounded bg-neutral-800 px-3 py-2 text-sm hover:bg-neutral-700 hidden sm:inline-block">Export CSV</a>
+            <Link href="/portal/contacts/new" className="rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-600">Add contact</Link>
+          </div>
         </header>
+
+        {params.imported && (
+          <p className="text-emerald-500 text-sm mb-4">
+            Import complete — {params.imported} added
+            {params.updated ? `, ${params.updated} updated` : ""}
+            {params.skipped ? `, ${params.skipped} skipped` : ""}.
+          </p>
+        )}
 
         {params.deleted && <p className="text-emerald-500 text-sm mb-4">Contact deleted.</p>}
         {params.error === "notfound" && <p className="text-amber-500 text-sm mb-4">Contact not found.</p>}

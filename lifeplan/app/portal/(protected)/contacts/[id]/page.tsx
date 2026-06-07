@@ -5,6 +5,8 @@ import { prisma } from "@/lib/db";
 import { contactDisplayName, resolveSearchParams } from "@/lib/crm";
 import { CommunicationTimeline } from "../../CommunicationTimeline";
 import { DeleteConfirmButton } from "../../DeleteConfirmButton";
+import { ContactActionBar } from "../ContactActionBar";
+import { ContactReachSection, buildContactActions } from "../ContactReachSection";
 
 export const dynamic = "force-dynamic";
 
@@ -37,18 +39,28 @@ export default async function PortalContactDetailPage(props: {
   if (!contact) notFound();
 
   const returnTo = `/portal/contacts/${id}`;
+  const actions = buildContactActions(contact);
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
+    <main className="min-h-screen bg-neutral-950 text-neutral-100 p-4 pb-8 sm:p-6">
       <div className="max-w-2xl mx-auto">
-        <header className="border-b border-neutral-800 pb-4 mb-6">
+        <header className="border-b border-neutral-800 pb-4 mb-4">
           <Link href="/portal/contacts" className="text-neutral-400 hover:text-white text-sm">← My contacts</Link>
           <div className="flex flex-wrap items-start justify-between gap-3 mt-2">
             <div>
               <h1 className="text-2xl font-semibold">{contactDisplayName(contact)}</h1>
               <p className="text-neutral-500 text-sm capitalize mt-0.5">{contact.category} · {contact.visibility}</p>
+              {contact.jobTitle && <p className="text-neutral-400 text-sm mt-0.5">{contact.jobTitle}</p>}
             </div>
-            <Link href={`/portal/contacts/${id}/edit`} className="rounded bg-neutral-800 px-3 py-1.5 text-sm hover:bg-neutral-700">Edit</Link>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={`/api/portal/contacts/export?id=${encodeURIComponent(id)}&format=vcf`}
+                className="rounded bg-neutral-800 px-3 py-1.5 text-sm hover:bg-neutral-700"
+              >
+                Export vCard
+              </a>
+              <Link href={`/portal/contacts/${id}/edit`} className="rounded bg-neutral-800 px-3 py-1.5 text-sm hover:bg-neutral-700">Edit</Link>
+            </div>
           </div>
         </header>
 
@@ -57,27 +69,31 @@ export default async function PortalContactDetailPage(props: {
         {params.comm && <p className="text-emerald-500 text-sm mb-4">Activity logged.</p>}
         {params.error?.startsWith("comm_") && <p className="text-amber-500 text-sm mb-4">Could not log activity.</p>}
 
-        <section className="rounded-lg bg-neutral-900 p-4 border border-neutral-800 text-sm space-y-1">
-          <h2 className="text-neutral-400 text-xs uppercase tracking-wider mb-2">Contact info</h2>
-          <ProfileRow label="Email" value={contact.email} />
-          <ProfileRow label="Secondary email" value={contact.emailSecondary} />
-          <ProfileRow label="Phone" value={contact.phone} />
-          <ProfileRow label="Mobile" value={contact.mobile} />
-          <ProfileRow label="Job title" value={contact.jobTitle} />
-          {contact.company ? (
-            <p>
-              <span className="text-neutral-500">Company:</span>{" "}
-              <Link href={`/portal/companies/${contact.company.id}`} className="text-emerald-400 hover:underline">
-                {contact.company.name}
-              </Link>
-            </p>
-          ) : (
-            <ProfileRow label="Company" value={contact.companyName} />
-          )}
-          {(contact.street || contact.city) && (
-            <ProfileRow label="Address" value={[contact.street, contact.city, contact.state, contact.zip, contact.country].filter(Boolean).join(", ")} />
-          )}
-        </section>
+        <ContactActionBar actions={actions} />
+
+        <ContactReachSection contact={contact} />
+
+        {(contact.company || contact.companyName || contact.street || contact.city) && (
+          <section className="rounded-lg bg-neutral-900 p-4 border border-neutral-800 text-sm space-y-1 mt-4">
+            <h2 className="text-neutral-400 text-xs uppercase tracking-wider mb-2">Organization & address</h2>
+            {contact.company ? (
+              <p>
+                <span className="text-neutral-500">Company:</span>{" "}
+                <Link href={`/portal/companies/${contact.company.id}`} className="text-emerald-400 hover:underline">
+                  {contact.company.name}
+                </Link>
+              </p>
+            ) : (
+              <ProfileRow label="Company" value={contact.companyName} />
+            )}
+            {(contact.street || contact.city) && (
+              <ProfileRow
+                label="Address"
+                value={[contact.street, contact.city, contact.state, contact.zip, contact.country].filter(Boolean).join(", ")}
+              />
+            )}
+          </section>
+        )}
 
         {(contact.notes || contact.howToEngage || contact.keyFacts || contact.tags) && (
           <section className="rounded-lg bg-neutral-900 p-4 border border-neutral-800 text-sm mt-4 space-y-3">
