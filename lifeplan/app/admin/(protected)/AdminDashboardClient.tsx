@@ -104,6 +104,23 @@ export function AdminDashboardClient() {
 
         {deleted && <p className="text-emerald-500 text-sm mb-4">Member deleted.</p>}
         {updated && <p className="text-emerald-500 text-sm mb-4">Member updated.</p>}
+        {searchParams.get("subscription_added") && (
+          <p className="text-emerald-500 text-sm mb-4">Subscription added.</p>
+        )}
+        {searchParams.get("subscription_canceled") && (
+          <p className="text-emerald-500 text-sm mb-4">Subscription canceled.</p>
+        )}
+        {errorParam === "subscription_duplicate" && (
+          <p className="text-amber-500 text-sm mb-4">
+            That member already has an active subscription on the selected plan. Cancel the existing one first, or pick a different plan.
+          </p>
+        )}
+        {errorParam === "subscription_cancel" && (
+          <p className="text-amber-500 text-sm mb-4">Could not cancel subscription.</p>
+        )}
+        {errorParam === "subscription" && (
+          <p className="text-amber-500 text-sm mb-4">Could not add subscription — missing member or plan.</p>
+        )}
         {errorParam === "delete" && <p className="text-amber-500 text-sm mb-4">Could not delete member (may have dependent data).</p>}
         {dbError && (
           <div className="text-amber-500 mb-6 space-y-2">
@@ -182,7 +199,11 @@ export function AdminDashboardClient() {
                     </span>
                   )}
                   <AddCategoryForm memberId={m.id} commonCategories={COMMON_CATEGORIES} existing={m.categories.map((c) => c.category)} />
-                  <AddSubscriptionForm memberId={m.id} plans={plans} />
+                  <AddSubscriptionForm
+                    memberId={m.id}
+                    plans={plans}
+                    activePlanIds={subscriptions.filter((s) => s.memberId === m.id).map((s) => s.subscriptionPlanId)}
+                  />
                   {m.lifePlanSubjectId && (
                     <Link href={"/admin/life-plan/subject/" + m.lifePlanSubjectId} className="text-emerald-400 text-sm hover:underline">View life plan</Link>
                   )}
@@ -197,6 +218,9 @@ export function AdminDashboardClient() {
 
         <section>
           <h2 className="text-lg font-medium text-neutral-300 mb-3">Active subscriptions</h2>
+          <p className="text-neutral-500 text-sm mb-3">
+            One active row per member per plan. Use Cancel to remove duplicates; Add plan on a member row assigns a new plan.
+          </p>
           <SubscriptionList subscriptions={subscriptions} />
         </section>
       </div>
@@ -204,13 +228,25 @@ export function AdminDashboardClient() {
   );
 }
 
-function AddSubscriptionForm({ memberId, plans }: { memberId: string; plans: Plan[] }) {
+function AddSubscriptionForm({
+  memberId,
+  plans,
+  activePlanIds,
+}: {
+  memberId: string;
+  plans: Plan[];
+  activePlanIds: string[];
+}) {
+  const available = plans.filter((p) => !activePlanIds.includes(p.id));
   if (plans.length === 0) return null;
+  if (available.length === 0) {
+    return <span className="text-neutral-500 text-xs ml-auto">All plans active</span>;
+  }
   return (
     <form action="/api/members/subscriptions" method="POST" className="ml-auto flex items-center gap-2">
       <input type="hidden" name="memberId" value={memberId} />
       <select name="subscriptionPlanId" required className="rounded bg-neutral-800 px-2 py-1 text-sm text-white border border-neutral-700">
-        {plans.map((p) => (
+        {available.map((p) => (
           <option key={p.id} value={p.id}>{p.name}</option>
         ))}
       </select>
