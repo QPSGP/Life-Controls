@@ -122,8 +122,8 @@ So the **individual** builds their own contact/company databases in the portal; 
 | **Phase 1** | Schema: Contact and Company models (with visibility, category, profile fields). Communication: add contactId, companyId. | ✅ Done |
 | **2** | Portal: My Contacts / My Companies — list (filter by business/personal, private/public), add, edit, view profile. | ✅ Done |
 | **3** | Link communications: when logging a call/email, optional “Link to contact/company”; contact/company detail page shows timeline. | ✅ Done (portal); admin comm form still member-only link optional |
-| **4** | Admin: Contacts and Companies list (filter by member, category, visibility); view/edit for support. | ❌ Not done |
-| **5** | CSV import for Contacts (and Companies) with column mapping / Outlook-style preset. | ❌ Not done |
+| **4** | Admin: Contacts and Companies list (filter by member, category, visibility); view/edit for support. | ✅ Done (`/admin/contacts`, `/admin/companies`) |
+| **5** | CSV / vCard import for Contacts (portal + admin on behalf of member). | ✅ Done (basic presets; companies CSV later) |
 | **6** | Optional: API sync (Outlook, RingCentral). | ❌ Not done |
 
 This gives you a HubSpot-like hub: contact and company **profiles** (not just contact info), **private/public** and **business/personal** separation, and communications tied to contacts/companies so you can understand and engage with people and companies in one place.

@@ -64,8 +64,9 @@
 | Portal — My Contacts / My Companies | ✅ Done | List, filters (business/personal, private/public), add, edit, delete |
 | Contact / company profiles | ✅ Done | Notes, how to engage, key facts, tags, company link |
 | Activity timeline on detail pages | ✅ Done | Log call / email / mailout from contact or company page |
-| Admin CRM oversight | ❌ Not done | Optional support list |
-| CSV import (Outlook-style) | ❌ Not done | Phase 5 in CONTACTS_AND_COMPANIES_DESIGN.md |
+| Admin CRM oversight | ✅ Done | `/admin/contacts`, `/admin/companies` — filter by member/category/visibility; view/edit/delete; log activity |
+| Channels + mobile actions | ✅ Done | JSON channels; Call/Text/Email/WhatsApp on contact detail |
+| CSV / vCard import-export | ✅ Done | Portal + admin (per member); companies CSV later |
 
 ---
 

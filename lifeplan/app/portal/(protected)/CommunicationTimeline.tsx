@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 type Comm = {
   id: string;
   type: string;
@@ -13,18 +11,23 @@ export function CommunicationTimeline({
   returnTo,
   contactId,
   companyId,
+  action = "/api/portal/communications",
+  memberId,
 }: {
   communications: Comm[];
   returnTo: string;
   contactId?: string;
   companyId?: string;
+  action?: string;
+  memberId?: string;
 }) {
   return (
     <section className="mt-8">
       <h2 className="text-lg font-medium text-neutral-300 mb-3">Activity timeline</h2>
 
-      <form action="/api/portal/communications" method="POST" className="rounded-lg bg-neutral-900 p-4 space-y-3 border border-neutral-800 mb-6">
+      <form action={action} method="POST" className="rounded-lg bg-neutral-900 p-4 space-y-3 border border-neutral-800 mb-6">
         <input type="hidden" name="returnTo" value={returnTo} />
+        {memberId && <input type="hidden" name="memberId" value={memberId} />}
         {contactId && <input type="hidden" name="contactId" value={contactId} />}
         {companyId && <input type="hidden" name="companyId" value={companyId} />}
         <div className="flex flex-wrap gap-3">

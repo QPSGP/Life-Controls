@@ -90,6 +90,8 @@ export function AdminDashboardClient() {
             <Link href="/admin/invoices" className="text-neutral-400 hover:text-white text-sm">Invoices</Link>
             <Link href="/admin/orders" className="text-neutral-400 hover:text-white text-sm">Orders</Link>
             <Link href="/admin/communications" className="text-neutral-400 hover:text-white text-sm">Communications</Link>
+            <Link href="/admin/contacts" className="text-neutral-400 hover:text-white text-sm">Contacts</Link>
+            <Link href="/admin/companies" className="text-neutral-400 hover:text-white text-sm">Companies</Link>
             <Link href="/admin/expenditures" className="text-neutral-400 hover:text-white text-sm">Expenditures</Link>
             <Link href="/admin/physical-movements" className="text-neutral-400 hover:text-white text-sm">Physical movements</Link>
             <Link href="/admin/life-plan" className="text-neutral-400 hover:text-white text-sm">Life Plan</Link>
