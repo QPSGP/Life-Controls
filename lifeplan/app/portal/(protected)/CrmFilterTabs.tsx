@@ -4,18 +4,30 @@ export function CrmFilterTabs({
   basePath,
   category,
   visibility,
+  preserve,
 }: {
   basePath: string;
   category?: string;
   visibility?: string;
+  /** Extra query params to keep when switching tabs (e.g. q, letter, memberId) */
+  preserve?: Record<string, string | undefined>;
 }) {
   const cat = category || "all";
   const vis = visibility || "all";
 
   function href(nextCat: string, nextVis: string) {
     const params = new URLSearchParams();
+    if (preserve) {
+      for (const [k, v] of Object.entries(preserve)) {
+        if (v) params.set(k, v);
+      }
+    }
     if (nextCat !== "all") params.set("category", nextCat);
+    else params.delete("category");
     if (nextVis !== "all") params.set("visibility", nextVis);
+    else params.delete("visibility");
+    // Reset page when changing category/visibility
+    params.delete("page");
     const q = params.toString();
     return q ? `${basePath}?${q}` : basePath;
   }
