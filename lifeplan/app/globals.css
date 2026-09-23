@@ -11,7 +11,64 @@
 }
 
 body {
-  background: var(--background);
+  background-color: #07080c;
+  background-image:
+    radial-gradient(ellipse 70% 45% at 0% -10%, rgba(228, 168, 83, 0.18), transparent 55%),
+    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(140, 168, 196, 0.14), transparent 50%);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-dm-sans), system-ui, sans-serif;
+}
+
+/* Let the field show through page shells. Cards and inputs stay readable. */
+main.bg-neutral-950 {
+  background-color: transparent;
+}
+
+.bg-neutral-900 {
+  background-color: rgba(14, 16, 22, 0.58);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bg-emerald-700,
+.bg-emerald-600 {
+  background-color: #e4a853;
+  color: #1a1408;
+}
+
+.bg-emerald-700.text-white,
+.bg-emerald-600.text-white,
+a.bg-emerald-700,
+button.bg-emerald-700 {
+  color: #1a1408;
+}
+
+.hover\:bg-emerald-600:hover,
+.hover\:bg-emerald-700:hover,
+.bg-emerald-700:hover {
+  background-color: #efc078;
+  color: #1a1408;
+}
+
+.text-emerald-400 {
+  color: #e4a853;
+}
+
+.font-mono {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+@media print {
+  body {
+    background: white !important;
+  }
+  .bg-neutral-900,
+  main.bg-neutral-950 {
+    background: white !important;
+    backdrop-filter: none !important;
+    border-color: transparent !important;
+    color: black;
+  }
 }

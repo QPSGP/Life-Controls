@@ -2,7 +2,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getMemberIdFromCookie } from "@/lib/member-auth";
 import { prisma } from "@/lib/db";
-import { runDailyMaintenance, todaysCalls } from "@/lib/daily-maintenance";
+import { runDailyMaintenance } from "@/lib/daily-maintenance";
+import { loadDayItems } from "@/lib/member-day";
+import { ruleBrief } from "@/lib/day-plan";
+import { TodayPanel } from "./TodayPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +17,7 @@ export default async function PortalPage(props: { searchParams: Promise<{ update
     : (props.searchParams as { updated?: string; error?: string; joined?: string });
 
   await runDailyMaintenance(memberId);
-  const calls = await todaysCalls(memberId);
+  const dayItems = await loadDayItems(memberId);
 
   const member = await prisma.member.findUnique({
     where: { id: memberId },
@@ -49,9 +52,9 @@ export default async function PortalPage(props: { searchParams: Promise<{ update
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
       <div className="max-w-2xl mx-auto">
-        <header className="border-b border-neutral-800 pb-4 mb-8">
-          <h1 className="text-2xl font-semibold">Sovereign Life Control Tool</h1>
-          <p className="text-sm text-neutral-500 mt-0.5">My account</p>
+        <header className="border-b border-white/10 pb-4 mb-8">
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-500">Account</p>
+          <h1 className="font-display text-3xl text-white mt-1">Sovereign Life Control Tool</h1>
         </header>
 
         {params.updated && <p className="text-emerald-500 text-sm mb-4">Profile updated.</p>}
@@ -69,33 +72,7 @@ export default async function PortalPage(props: { searchParams: Promise<{ update
           </section>
         )}
 
-        <section className="mb-8">
-          <h2 className="text-lg font-medium text-neutral-300 mb-3">Today’s calls</h2>
-          {calls.length === 0 ? (
-            <p className="text-neutral-500 text-sm">No calls due. Rollover items land here each morning.</p>
-          ) : (
-            <ul className="space-y-2">
-              {calls.map((c) => (
-                <li key={c.id} className="rounded-lg bg-neutral-900 p-4 flex items-start justify-between gap-3">
-                  <div className="text-sm">
-                    <p className="font-medium">
-                      Call {c.noun ?? ""}{c.object ? ` ${c.object}` : ""}
-                    </p>
-                    <p className="text-neutral-500">{c.purpose} · {c.responsibility}{c.scheduledTime ? ` · ${c.scheduledTime}` : ""}</p>
-                  </div>
-                  <form action={`/api/portal/life-plan/physical-movement/${c.id}/done`} method="POST">
-                    <input type="hidden" name="done" value="true" />
-                    <input type="hidden" name="next" value="/portal" />
-                    <button type="submit" className="rounded px-2 py-1 text-xs bg-emerald-700 text-white hover:bg-emerald-600">Mark done</button>
-                  </form>
-                </li>
-              ))}
-            </ul>
-          )}
-          <p className="mt-2">
-            <Link href="/portal/schedule?verb=Call&done=no" className="text-emerald-400 text-sm hover:underline">All calls on the schedule →</Link>
-          </p>
-        </section>
+        <TodayPanel items={dayItems} brief={ruleBrief(dayItems)} />
 
         <section className="mb-8">
           <h2 className="text-lg font-medium text-neutral-300 mb-3">Profile</h2>

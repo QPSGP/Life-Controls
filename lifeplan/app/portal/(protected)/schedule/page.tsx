@@ -169,7 +169,7 @@ export default async function PortalSchedulePage({
               if (!sectionRows?.length) return null;
               return (
                 <div key={verbName}>
-                  <h2 className="text-lg font-medium text-neutral-200 mb-3 print:text-black print:border-b print:border-gray-300 print:pb-1">{verbName}</h2>
+                  <h2 className="font-mono text-sm uppercase tracking-[0.16em] text-accent mb-3 print:text-black print:border-b print:border-gray-300 print:pb-1">{verbName}</h2>
                   <table className="w-full text-sm border-collapse">
                     <thead>
                       <tr className="border-b border-neutral-700 text-left text-neutral-400 print:border-black">

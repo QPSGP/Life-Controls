@@ -11,6 +11,7 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-dm-sans)", "system-ui", "sans-serif"],
         display: ["var(--font-fraunces)", "serif"],
+        mono: ["var(--font-plex-mono)", "ui-monospace", "monospace"],
       },
       colors: {
         accent: "#e4a853",

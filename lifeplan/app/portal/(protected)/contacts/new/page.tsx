@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getMemberIdFromCookie } from "@/lib/member-auth";
 import { prisma } from "@/lib/db";
 import { resolveSearchParams } from "@/lib/crm";
-import { ContactForm } from "../ContactForm";
+import { AddContactStudio } from "../AddContactStudio";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +33,7 @@ export default async function PortalContactNewPage(props: {
         {params.error === "create" && <p className="text-amber-500 text-sm mb-4">Could not create contact.</p>}
         {params.error === "company" && <p className="text-amber-500 text-sm mb-4">Invalid company link.</p>}
 
-        <ContactForm action="/api/portal/contacts" companies={companies} submitLabel="Create contact" />
+        <AddContactStudio companies={companies} />
       </div>
     </main>
   );

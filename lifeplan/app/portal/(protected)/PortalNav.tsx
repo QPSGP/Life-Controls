@@ -11,9 +11,9 @@ export function PortalNav({
     "text-sm text-neutral-400 hover:text-white px-2 py-1 rounded hover:bg-neutral-800";
 
   return (
-    <nav className="border-b border-neutral-800 bg-neutral-950/95 backdrop-blur-sm sticky top-0 z-10">
+    <nav className="border-b border-white/10 bg-black/45 backdrop-blur-xl sticky top-0 z-10">
       <div className="max-w-2xl mx-auto px-6 py-3 flex flex-wrap items-center gap-1 sm:gap-3">
-        <span className="text-neutral-500 text-xs uppercase tracking-wider mr-2 hidden sm:inline">Portal</span>
+        <span className="font-mono text-neutral-500 text-[11px] uppercase tracking-[0.18em] mr-2 hidden sm:inline">Portal</span>
         <Link href="/portal" className={linkClass}>
           My account
         </Link>

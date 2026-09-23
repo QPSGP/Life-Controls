@@ -5,7 +5,7 @@ export default function Home() {
     <main className="min-h-screen flex flex-col">
       {/* Hero */}
       <section className="flex flex-1 flex-col items-center justify-center px-6 py-20 text-center sm:px-8">
-        <p className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-zinc-500">
+        <p className="mb-4 font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-500">
           Take control
         </p>
         <h1 className="font-display max-w-4xl text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl">
@@ -17,8 +17,8 @@ export default function Home() {
         </p>
 
         {/* What you get — easy to follow */}
-        <section className="mt-14 w-full max-w-md" aria-label="What you get">
-          <h2 className="text-sm font-medium uppercase tracking-wider text-zinc-500 mb-4">
+        <section className="mt-14 w-full max-w-md rounded-xl border border-white/10 bg-black/35 px-5 py-5 text-left backdrop-blur-xl" aria-label="What you get">
+          <h2 className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500 mb-4">
             What you get
           </h2>
           <ul className="space-y-3 text-left text-zinc-300">
