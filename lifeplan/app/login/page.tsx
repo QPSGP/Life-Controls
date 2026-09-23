@@ -99,7 +99,7 @@ export default async function MemberLoginPage({
           <Link href="/login/forgot" className="text-neutral-400 hover:text-white">Forgot password?</Link>
         </p>
         <p className="mt-2 text-center text-sm text-neutral-500">
-          No account? Ask your admin to add you and set a password.
+          No account? <Link href="/signup" className="text-neutral-300 hover:text-white">Join</Link>
         </p>
         <p className="mt-2 text-center">
           <Link href="/" className="text-sm text-neutral-400 hover:text-white">← Home</Link>

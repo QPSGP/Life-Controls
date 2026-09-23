@@ -45,5 +45,7 @@ export async function POST(
     console.error(e);
     return NextResponse.redirect(new URL("/portal/schedule?error=update", origin));
   }
-  return NextResponse.redirect(new URL("/portal/schedule", origin));
+  const next = formData.get("next");
+  const dest = next === "/portal" ? "/portal" : "/portal/schedule";
+  return NextResponse.redirect(new URL(dest, origin));
 }

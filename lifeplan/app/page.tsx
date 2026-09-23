@@ -56,8 +56,14 @@ export default function Home() {
         {/* CTAs */}
         <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:gap-5">
           <Link
-            href="/login"
+            href="/signup"
             className="inline-flex items-center justify-center rounded-lg bg-accent px-8 py-3.5 text-sm font-semibold text-black transition-colors hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-[#0a0a0a]"
+          >
+            Join
+          </Link>
+          <Link
+            href="/login"
+            className="inline-flex items-center justify-center rounded-lg border border-zinc-600 bg-transparent px-8 py-3.5 text-sm font-semibold text-white transition-colors hover:border-zinc-500 hover:bg-zinc-800/50 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 focus:ring-offset-[#0a0a0a]"
           >
             Member portal
           </Link>

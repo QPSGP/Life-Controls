@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/db";
+import { activatePaidSignup } from "@/lib/billing";
 
 // Stripe webhook: verify signature and update payments + subscription status.
 // Set STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET in Vercel.
@@ -43,6 +44,19 @@ export async function POST(req: NextRequest) {
         const invoiceId = session.metadata?.invoiceId as string | undefined;
         const subscriptionId = session.metadata?.subscriptionId as string | undefined;
         const stripeSubscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
+
+        if (session.metadata?.kind === "signup" && session.payment_status === "paid") {
+          const pi = session.payment_intent;
+          const providerPaymentId = pi ? (typeof pi === "string" ? pi : (pi as Stripe.PaymentIntent).id) : `checkout_${session.id}`;
+          await activatePaidSignup({
+            subscriptionId,
+            invoiceId,
+            stripeSubscriptionId: stripeSubscriptionId ?? null,
+            amountCents: session.amount_total ?? 0,
+            providerPaymentId,
+          });
+          break;
+        }
 
         if (subscriptionId && stripeSubscriptionId) {
           await prisma.subscription.updateMany({
@@ -102,9 +116,13 @@ export async function POST(req: NextRequest) {
         if (invoice.subscription) {
           const stripeSubId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
           if (stripeSubId) {
+            const lineEnd = invoice.lines?.data?.[0]?.period?.end;
             await prisma.subscription.updateMany({
               where: { stripeSubscriptionId: stripeSubId },
-              data: { status: "active" },
+              data: {
+                status: "active",
+                ...(lineEnd ? { currentPeriodEnd: new Date(lineEnd * 1000) } : {}),
+              },
             });
           }
         }

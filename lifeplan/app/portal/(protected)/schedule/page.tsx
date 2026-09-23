@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getMemberIdFromCookie } from "@/lib/member-auth";
 import { prisma } from "@/lib/db";
+import { runDailyMaintenance } from "@/lib/daily-maintenance";
 import { MOVEMENT_TYPE_ORDER } from "@/lib/movement-types";
 import { SchedulePrintButton } from "./SchedulePrintButton";
 import { ScheduleFilters } from "./ScheduleFilters";
@@ -42,6 +43,7 @@ export default async function PortalSchedulePage({
 }) {
   const memberId = await getMemberIdFromCookie();
   if (!memberId) redirect("/login");
+  await runDailyMaintenance(memberId);
   const params = await searchParams;
   const filterVerb = params.verb?.trim() || undefined;
   const filterDone = params.done === "yes" ? true : params.done === "no" ? false : undefined;

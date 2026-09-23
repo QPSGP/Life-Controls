@@ -2,7 +2,22 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default function AdminReportsPage() {
+export default function AdminReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ rolled?: string; reopened?: string; pastDue?: string; error?: string }>;
+}) {
+  return (
+    <ReportsBody searchParams={searchParams} />
+  );
+}
+
+async function ReportsBody({
+  searchParams,
+}: {
+  searchParams: Promise<{ rolled?: string; reopened?: string; pastDue?: string; error?: string }>;
+}) {
+  const params = await searchParams;
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
       <div className="max-w-2xl mx-auto">
@@ -10,6 +25,21 @@ export default function AdminReportsPage() {
           <h1 className="text-2xl font-semibold">Reports</h1>
           <Link href="/admin" className="text-neutral-400 hover:text-white text-sm">← Admin</Link>
         </header>
+
+        {params.rolled != null && (
+          <p className="text-emerald-500 text-sm mb-4">
+            Day rolled forward. {params.rolled} movements scheduled for today, {params.reopened ?? "0"} reopened, {params.pastDue ?? "0"} invoices marked past due.
+          </p>
+        )}
+        {params.error === "maintenance" && <p className="text-amber-500 text-sm mb-4">Could not roll the day forward.</p>}
+
+        <section className="mb-8 rounded bg-neutral-900 p-4">
+          <h2 className="font-medium text-neutral-300 mb-2">Daily maintenance</h2>
+          <p className="text-neutral-500 text-sm mb-3">Moves rollover movements onto today and marks open invoices past their due date. The same job runs each morning, and again when a member opens the portal.</p>
+          <form action="/api/cron/daily" method="POST">
+            <button type="submit" className="rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-600">Roll the day forward</button>
+          </form>
+        </section>
 
         <section className="space-y-4 mb-8">
           <h2 className="text-sm font-medium text-neutral-400 uppercase tracking-wide">Exports</h2>

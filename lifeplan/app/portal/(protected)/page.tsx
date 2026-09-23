@@ -2,22 +2,26 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getMemberIdFromCookie } from "@/lib/member-auth";
 import { prisma } from "@/lib/db";
+import { runDailyMaintenance, todaysCalls } from "@/lib/daily-maintenance";
 
 export const dynamic = "force-dynamic";
 
-export default async function PortalPage(props: { searchParams: Promise<{ updated?: string; error?: string }> | { updated?: string; error?: string } }) {
+export default async function PortalPage(props: { searchParams: Promise<{ updated?: string; error?: string; joined?: string }> | { updated?: string; error?: string; joined?: string } }) {
   const memberId = await getMemberIdFromCookie();
   if (!memberId) redirect("/login");
   const params = typeof (props.searchParams as Promise<unknown>)?.then === "function"
-    ? await (props.searchParams as Promise<{ updated?: string; error?: string }>)
-    : (props.searchParams as { updated?: string; error?: string });
+    ? await (props.searchParams as Promise<{ updated?: string; error?: string; joined?: string }>)
+    : (props.searchParams as { updated?: string; error?: string; joined?: string });
+
+  await runDailyMaintenance(memberId);
+  const calls = await todaysCalls(memberId);
 
   const member = await prisma.member.findUnique({
     where: { id: memberId },
     include: { categories: { select: { category: true } } },
   });
   if (!member) redirect("/login?error=invalid");
-  const [subscriptions, invoices, subjectBusinesses, documentCount] = await Promise.all([
+  const [subscriptions, invoices, subjectBusinesses, documentCount, pendingSub] = await Promise.all([
     prisma.subscription.findMany({
       where: { memberId, status: { in: ["active", "trial"] } },
       include: { plan: true },
@@ -35,6 +39,11 @@ export default async function PortalPage(props: { searchParams: Promise<{ update
       select: { id: true, name: true },
     }),
     prisma.universaDocument.count({ where: { memberId } }),
+    prisma.subscription.findFirst({
+      where: { memberId, status: "pending" },
+      include: { plan: true },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
 
   return (
@@ -46,7 +55,47 @@ export default async function PortalPage(props: { searchParams: Promise<{ update
         </header>
 
         {params.updated && <p className="text-emerald-500 text-sm mb-4">Profile updated.</p>}
+        {params.joined && <p className="text-emerald-500 text-sm mb-4">You are in. Your plan and today’s call are ready.</p>}
         {params.error === "update" && <p className="text-amber-500 text-sm mb-4">Failed to update profile.</p>}
+        {params.error === "stripe" && <p className="text-amber-500 text-sm mb-4">Could not start card checkout.</p>}
+
+        {pendingSub && (
+          <section className="mb-8 rounded-lg border border-amber-800 bg-amber-950/40 p-4">
+            <h2 className="text-lg font-medium text-amber-200 mb-1">Finish payment</h2>
+            <p className="text-sm text-amber-100/80 mb-3">{pendingSub.plan.name} is waiting on checkout.</p>
+            <form action="/api/portal/billing/checkout" method="POST">
+              <button type="submit" className="rounded bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-600">Continue to payment</button>
+            </form>
+          </section>
+        )}
+
+        <section className="mb-8">
+          <h2 className="text-lg font-medium text-neutral-300 mb-3">Today’s calls</h2>
+          {calls.length === 0 ? (
+            <p className="text-neutral-500 text-sm">No calls due. Rollover items land here each morning.</p>
+          ) : (
+            <ul className="space-y-2">
+              {calls.map((c) => (
+                <li key={c.id} className="rounded-lg bg-neutral-900 p-4 flex items-start justify-between gap-3">
+                  <div className="text-sm">
+                    <p className="font-medium">
+                      Call {c.noun ?? ""}{c.object ? ` ${c.object}` : ""}
+                    </p>
+                    <p className="text-neutral-500">{c.purpose} · {c.responsibility}{c.scheduledTime ? ` · ${c.scheduledTime}` : ""}</p>
+                  </div>
+                  <form action={`/api/portal/life-plan/physical-movement/${c.id}/done`} method="POST">
+                    <input type="hidden" name="done" value="true" />
+                    <input type="hidden" name="next" value="/portal" />
+                    <button type="submit" className="rounded px-2 py-1 text-xs bg-emerald-700 text-white hover:bg-emerald-600">Mark done</button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-2">
+            <Link href="/portal/schedule?verb=Call&done=no" className="text-emerald-400 text-sm hover:underline">All calls on the schedule →</Link>
+          </p>
+        </section>
 
         <section className="mb-8">
           <h2 className="text-lg font-medium text-neutral-300 mb-3">Profile</h2>
