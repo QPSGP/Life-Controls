@@ -1,56 +1,55 @@
-# Session context — Sovereign Life Plan
+# Session context — Sovereign Life Control Tool
 
-**Use this file when you come back to the project.** Ask the AI to "read docs/SESSION_CONTEXT.md" to restore context, or the AI may reference it automatically.
+**Starting point: 23 Sep 2026. Commit `c8e8307` on `main`.**
+
+Use this file when you come back. In a new chat, say: **"Read docs/SESSION_CONTEXT.md — this is the starting point."**
+
+Older notes in `docs/HANDOFF_SUMMARY.md` describe an earlier session. Start from this file.
 
 ---
 
 ## What this project is
 
-- **Sovereign Life Plan** — Next.js 14 app (App Router), Prisma, PostgreSQL. Repo: **QPSGP/Sovereign-Life-Plan**, deploys on **Vercel**.
-- Recreates legacy Paradox behavior: members, subscriptions, Life Plan hierarchy, invoices/payments, communications, orders, expenditures, physical movements, reports.
-- **Two tiers only:** SOVEREIGN: Personal $25/mo, SOVEREIGN: Business $250/mo.
+- **Sovereign Life Control Tool** — Next.js 14 App Router, Prisma 6, PostgreSQL (Neon). App folder: `lifeplan/`. Parent repo: `c:\dev\PARADOX`.
+- GitHub: **QPSGP/Life-Controls**. Production: **https://life-controls.vercel.app**. Vercel root is `lifeplan/`. Deploy = push to `main`.
+- Life plan: Subject/Business → Area of purpose → Area of responsibility → Physical movement. **D** = date specific, **R** = rolls over. Verbs are miniday categories (Call, Read, and so on).
+- Two plans: **sovereign-personal** $25/mo, **sovereign-business** $250/mo. Accounts open with **no charge** until selling starts.
 
 ---
 
-## Current state (as of last session)
+## Starting point (what is live)
 
-- **Admin:** Dashboard (members, plans, subscriptions), Invoices, Orders, Communications, Expenditures, Physical movements, Life Plan, Reports. Admin login via `ADMIN_PASSWORD` + `AUTH_SECRET` cookie.
-- **Dashboard loads via client fetch** from `GET /api/admin/dashboard` (avoids server serialization errors after login).
-- **Tables show all fields;** only subject/name/title is required in forms (per your request).
-- **Admin and members can add and edit every field:**
-  - **Admin:** Life Plan (subject, area of purpose, area of responsibility, physical movement), Communications, Physical movements, Expenditures, **Members** (full profile edit at `/admin/members/[id]/edit`).
-  - **Members (portal):** Profile edit at `/portal/profile/edit`; Life Plan subject/business edit when a plan is linked (portal plan subject page has edit form).
-- **Member delete:** Admin can delete members (with confirm); API `POST /api/members/[id]/delete`.
-- **DB:** Seed keeps only `sovereign-personal` and `sovereign-business` plans; run "DB push and seed" via GitHub Actions (must be **logged in to GitHub** to see "Run workflow"). Optional **demo data**: run `npm run db:seed:demo` (after main seed) to populate one member, a life plan, communications, physical movements, expenditures, and an invoice—see `docs/DATA_AND_IMPORT.md`.
+Functional daily loop (`14c60fe`) plus the instrument-panel look and three draft actions (`c8e8307`).
 
----
-
-## Key paths
-
-| Area | Paths |
-|------|--------|
-| Admin | `app/admin/(protected)/page.tsx` (dashboard client), `app/admin/(protected)/layout.tsx`, `app/admin/login/page.tsx` |
-| Life Plan admin | `app/admin/life-plan/LifePlanClient.tsx`, `subject/[id]`, `purpose/[id]`, `responsibility/[id]`, `movement/[id]/edit` |
-| Edit APIs | `app/api/life-plan/subject-business/[id]`, `area-of-purpose/[id]`, `area-of-responsibility/[id]`, `physical-movement/[id]`, `app/api/communications/[id]`, `physical-movements/[id]`, `expenditures/[id]`, `app/api/members/[id]` |
-| Portal | `app/portal/(protected)/page.tsx`, `profile/edit`, `plan/subject/[id]` |
-| Portal APIs | `app/api/portal/profile`, `app/api/portal/life-plan/subject-business/[id]` |
-| Config | `prisma/schema.prisma`, `prisma/seed.js`, `lib/db.ts`, `lib/auth.ts`, `lib/member-auth.ts` |
-| **How tables work** | `docs/HOW_TABLES_FUNCTION.md` — how each table works alone and with others (Paradox-style reference). |
+- **Morning rollover.** R movements land on today. Open invoices due before today become past due. Cron: `lifeplan/vercel.json` → `GET /api/cron/daily` at `15 14 * * *` with `Authorization: Bearer CRON_SECRET`. A portal visit also rolls that member. Timezone: `APP_TIMEZONE` (default `America/Los_Angeles`).
+- **Copy a program** from the life-plan UI (admin and portal).
+- **Staff login** keeps the shared `ADMIN_PASSWORD`. Blank email uses that password. A staff email signs in as that user.
+- **Public signup** at `/signup`. A real Stripe secret (`sk_test_` or `sk_live_` plus 8+ characters) starts Checkout. The local key is a placeholder, so signup creates an active subscription and skips the card. Leave that path until selling.
+- **Look.** Dark field, gold accent `#e4a853`, Fraunces and DM Sans, IBM Plex Mono for labels. Glass is for chrome and summary panels. Inputs stay solid.
+- **Three actions.** Each drafts into an existing record and waits for a human confirm before save. No general chat box.
+  - **Order my day** — portal home. Sorts the open list (overdue, then calls, then time) and writes a short brief. `POST /api/portal/today`.
+  - **Capture** — New contact. Pastes a signature into the form. Create contact is still a separate click. `POST /api/portal/contacts/capture`.
+  - **Build a program** — subject page. A sentence such as “LinkedIn, same shape as Daily control” copies that program. `POST /api/portal/life-plan/subject/[id]/build`.
+- **Model is optional.** `lib/ai.ts` calls OpenAI JSON mode only when `OPENAI_API_KEY` matches `sk-` plus 20+ characters. Model default `gpt-4o-mini`. With no key, Today uses the schedule, and Capture and Build use the text parsers.
 
 ---
 
-## Conventions
+## Leave out of git
 
-- **Always push to git** after changes (see `.cursor/rules/push-to-git.mdc`). Use PowerShell-friendly commands (e.g. `Set-Location "path"; git add ...`).
-- **DB push and seed:** GitHub Actions → "DB push and seed" (must be logged in). Doc: `docs/RUN_DB_PUSH_AND_SEED.md`.
-- **Env:** `DATABASE_URL`, `AUTH_SECRET`, `ADMIN_PASSWORD` in Vercel; `DATABASE_URL` in GitHub Actions secrets.
+- `lifeplan/tsconfig.tsbuildinfo`
+- One-off scripts already run against the demo database: `lifeplan/scripts/add-modern-marketing-programs.js`, `complete-marketing-programs.js`, `duplicate-marketing-responsibilities.js`
+
+---
+
+## Not built yet
+
+Outbound email or SMS (communications are a log), password reset beyond “contact admin”, company CSV import, FCA / CNTYCLRK / BIZLEGAL, and a general chatbot. `MemberPlan` and `Chore` are unused.
 
 ---
 
 ## When you come back
 
-1. Open this project in Cursor.
-2. In a new chat, say: **"Read docs/SESSION_CONTEXT.md for context — I'm back on Sovereign Life Plan."**
-3. Continue from there (e.g. money/payments, more member edit flows, or whatever you need next).
-
-This file is committed so it’s always in the repo when you return.
+1. Open `c:\dev\PARADOX` in Cursor.
+2. Say: **"Read docs/SESSION_CONTEXT.md — this is the starting point."**
+3. Local app: `npm run dev` in `lifeplan/` → http://localhost:3000.
+4. Charging turns on only when a real `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` are set. The model turns on only when `OPENAI_API_KEY` is set.

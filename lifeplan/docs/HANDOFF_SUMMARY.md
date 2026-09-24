@@ -1,5 +1,7 @@
 # Handoff summary — Life Plan project
 
+**Superseded.** The starting point is `docs/SESSION_CONTEXT.md` (23 Sep 2026, commit `c8e8307`). This file is an earlier session.
+
 *Leave this for when you come back from another project.*
 
 ---
